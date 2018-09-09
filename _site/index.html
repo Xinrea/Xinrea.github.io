@@ -10,7 +10,7 @@
     <!-- Open Graph -->
     <meta property="og:title" content="Xinrea的个人博客">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="http://localhost:4000/">
+    <meta property="og:url" content="https://xinrea.net/">
     <meta property="og:description" content="C++/Python/Java - Game/Music/Animation">
     <meta property="og:site_name" content="Xinrea的个人博客">
     <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
@@ -27,7 +27,7 @@
     <!--[if lt IE 10]>
 <div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
 <![endif]-->
-    <input id="nm-switch" type="hidden" value="true">
+    <input id="nm-switch" type="hidden" value="false">
     <div class="visible">
       <header class="g-header">
     <div class="g-logo">
@@ -59,28 +59,109 @@
         
             <article class="article-item">
                 
-                <div class="post-cover">
-                    <a class="post-link" href="/2017/04/18/hello-jekyll.html" title="Hello Jekyll"></a>
-                    <img src="http://on2171g4d.bkt.clouddn.com/jekyll-banner.png" href="/2017/04/18/hello-jekyll.html" alt="">
-                </div>
-                
                 <section class="post-preview">
-                    <a class="post-link" href="/2017/04/18/hello-jekyll.html" title="Hello Jekyll"></a>
-                    <h2 class="post-title">Hello Jekyll</h2>
+                    <a class="post-link" href="/2017/09/21/ffxiv-memory-read-3.html" title="FinalFantasyXIV 内存数据的读取（3）"></a>
+                    <h2 class="post-title">FinalFantasyXIV 内存数据的读取（3）</h2>
                     
                     
-                    <p class="post-excerpt">  Transform your plain text into static websites and blogs.</p>
+                    <p class="post-excerpt">对于变量的定位，在此推荐使用Cheat Engine，算是一个远古神器吧，许多游戏辅助工具都需要借助这个工具。下面是Cheat Engine的主界面截图：</p>
                     
                 </section>
                 <footer class="post-meta">
                     <div class="post-tags">
                         
-                            
-                            <a href=tags.html#jekyll class="post-tag">jekyll</a>
-                            
+                    </div>
+                    <time class="post-date" datetime="17-09-21">21 Sep 2017</time>
+                </footer>
+            </article>
+        
+            <article class="article-item">
+                
+                <section class="post-preview">
+                    <a class="post-link" href="/2017/09/20/ffxiv-memory-read-2.html" title="FinalFantasyXIV 内存数据的读取（2）"></a>
+                    <h2 class="post-title">FinalFantasyXIV 内存数据的读取（2）</h2>
+                    
+                    
+                    <p class="post-excerpt">上篇最后，给出了VS调试ffxiv_dx11.exe的图，可以看到，在我的环境下，其载入内存后基地址为0x00007FF68AE90000，若多次启动游戏进程，会发现其地址似乎是一个固定值，但是又似乎找不到这个地址从何而来，实际上，要弄清楚基址从...</p>
+                    
+                </section>
+                <footer class="post-meta">
+                    <div class="post-tags">
                         
                     </div>
-                    <time class="post-date" datetime="17-04-18">18 Apr 2017</time>
+                    <time class="post-date" datetime="17-09-20">20 Sep 2017</time>
+                </footer>
+            </article>
+        
+            <article class="article-item">
+                
+                <section class="post-preview">
+                    <a class="post-link" href="/2017/09/20/ffxiv-memory-read.html" title="FinalFantasyXIV 内存数据的读取（1）"></a>
+                    <h2 class="post-title">FinalFantasyXIV 内存数据的读取（1）</h2>
+                    
+                    
+                    <p class="post-excerpt">前几天突发奇想，想通过模拟按键的方式来操作ffxiv，以实现类似于电影拍摄中的视角移动，为广大游戏视频制作者提供帮助。但是ffxiv作为一款使用diretX开发的游戏，其游戏窗口屏蔽了在外的按键模拟信息，简单的keybd_event()和mous...</p>
+                    
+                </section>
+                <footer class="post-meta">
+                    <div class="post-tags">
+                        
+                    </div>
+                    <time class="post-date" datetime="17-09-20">20 Sep 2017</time>
+                </footer>
+            </article>
+        
+            <article class="article-item">
+                
+                <section class="post-preview">
+                    <a class="post-link" href="/2017/09/17/linux-learn-fork.html" title="linux下 fork()函数的使用"></a>
+                    <h2 class="post-title">linux下 fork()函数的使用</h2>
+                    
+                    
+                    <p class="post-excerpt">fork()函数</p>
+                    
+                </section>
+                <footer class="post-meta">
+                    <div class="post-tags">
+                        
+                    </div>
+                    <time class="post-date" datetime="17-09-17">17 Sep 2017</time>
+                </footer>
+            </article>
+        
+            <article class="article-item">
+                
+                <section class="post-preview">
+                    <a class="post-link" href="/2017/09/17/network-note-1.html" title="储存转发传输 - 传输时间计算"></a>
+                    <h2 class="post-title">储存转发传输 - 传输时间计算</h2>
+                    
+                    
+                    <p class="post-excerpt">计算机网络储存转发传输 - 传输时间计算  传播时延不予考虑由N条速率均为R的链路组成的路径, 从源到目的地发送一个分组的总体情况, 端到端时延为:d端到端 = N·L/R下面来分析P个分组经过N条链路序列的时延:令T(p)表示第P个分组刚好全部...</p>
+                    
+                </section>
+                <footer class="post-meta">
+                    <div class="post-tags">
+                        
+                    </div>
+                    <time class="post-date" datetime="17-09-17">17 Sep 2017</time>
+                </footer>
+            </article>
+        
+            <article class="article-item">
+                
+                <section class="post-preview">
+                    <a class="post-link" href="/2017/09/17/bilibili-python-spider.html" title="爬取bilibili视频封面"></a>
+                    <h2 class="post-title">爬取bilibili视频封面</h2>
+                    
+                    
+                    <p class="post-excerpt">###目标###  能够爬取指定up主视频封面  能够设定爬取封面数量</p>
+                    
+                </section>
+                <footer class="post-meta">
+                    <div class="post-tags">
+                        
+                    </div>
+                    <time class="post-date" datetime="17-09-17">17 Sep 2017</time>
                 </footer>
             </article>
         
@@ -112,13 +193,6 @@
                 
             </section>
 
-            
-            <section class="tags-card">
-                
-                    
-                    <a href="tags.html#jekyll" class="tag">jekyll</a>
-                
-            </section>
             
         </div>
 

@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinalFantasyXIV 内存数据的读取（1） - Xinrea的个人博客</title>
+    <meta name="author"  content="黄涵">
+    <meta name="description" content="FinalFantasyXIV 内存数据的读取（1）">
+    <meta name="keywords"  content="">
+    <!-- Open Graph -->
+    <meta property="og:title" content="FinalFantasyXIV 内存数据的读取（1） - Xinrea的个人博客">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://xinrea.net/2017/09/20/ffxiv-memory-read.html">
+    <meta property="og:description" content="C++/Python/Java - Game/Music/Animation">
+    <meta property="og:site_name" content="Xinrea的个人博客">
+    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
+    <link rel="stylesheet" href="/assets/css/github-markdown.css">
+    <link rel="stylesheet" href="/assets/css/prism.css">
+    <link rel="stylesheet" href="/assets/css/share.min.css">
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+	
+	<!--
+Author: Ray-Eldath
+refer to:
+ - http://docs.mathjax.org/en/latest/options/index.html
+-->
+
+	<script type="text/javascript" async src="https://cdn.bootcss.com/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+	
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+		jax: ["input/TeX", "output/HTML-CSS"],
+		tex2jax: {
+			inlineMath: [ ["$", "$"] ],
+			displayMath: [ ["$$", "$$"] ],
+			skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+		},
+		"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"] }
+      });
+    </script>
+
+	
+    <!--
+Author: Ray-Eldath
+-->
+<style>
+    .markdown-body .anchor{
+        float: left;
+        margin-top: -8px;
+        margin-left: -20px;
+        padding-right: 4px;
+        line-height: 1;
+        opacity: 0;
+    }
+    
+    .markdown-body .anchor .anchor-icon{
+        font-size: 15px
+    }
+</style>
+<script>
+    $(document).ready(function() {
+        let nodes = document.querySelector(".markdown-body").querySelectorAll("h1,h2,h3")
+        for(let node of nodes) {
+            var anchor = document.createElement("a")
+            var anchorIcon = document.createElement("i")
+            anchorIcon.setAttribute("class", "fa fa-anchor fa-lg anchor-icon")
+            anchorIcon.setAttribute("aria-hidden", true)
+            anchor.setAttribute("class", "anchor")
+            anchor.setAttribute("href", "#" + node.getAttribute("id"))
+            
+            anchor.onmouseover = function() {
+                this.style.opacity = "0.4"
+            }
+            
+            anchor.onmouseout = function() {
+                this.style.opacity = "0"
+            }
+            
+            anchor.appendChild(anchorIcon)
+            node.appendChild(anchor)
+        }
+    })
+</script>
+</head>
+
+
+<body>
+  <!--[if lt IE 10]>
+<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+<![endif]-->
+  <input id="nm-switch" type="hidden" value="false"> <header class="g-header">
+    <div class="g-logo">
+      <a href="/"></a>
+    </div>
+    <i id="menu-toggle" class="iconfont icon-menu"></i>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="/tags.html">tags</a></li>
+            
+        </ul>
+    </nav>
+</header>
+
+
+  <header class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover" data-theme="default">
+    <div class="post-wrapper">
+      <div class="post-tags">
+        
+      </div>
+      <h1>FinalFantasyXIV 内存数据的读取（1）</h1>
+      <div class="post-meta">
+        <span class="post-meta-item"><i class="iconfont icon-author"></i><a href="https://xinrea.net" target="_blank" rel="author">黄涵</a></></span>
+        <time class="post-meta-item" datetime="17-09-20"><i class="iconfont icon-date"></i>20 Sep 2017</time>
+      </div>
+    </div>
+    
+  </header>
+
+  <div class="post-content visible">
+    
+
+    <article class="markdown-body">
+      <p>前几天突发奇想，想通过模拟按键的方式来操作ffxiv，以实现类似于电影拍摄中的视角移动，为广大游戏视频制作者提供帮助。</p>
+
+<p>但是ffxiv作为一款使用diretX开发的游戏，其游戏窗口屏蔽了在外的按键模拟信息，简单的<code class="highlighter-rouge">keybd_event()</code>和<code class="highlighter-rouge">mouse_event()</code>并无法实现对游戏内的模拟操作，在网上查询一系列资料后，发现只要能够获取窗口的句柄，便能够轻松地使用<code class="highlighter-rouge">PostMessage()</code>方式模拟按键信息，实现代码如下：</p>
+
+<figure class="highlight"><pre><code class="language-c" data-lang="c"><span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="k">const</span> <span class="o">*</span><span class="n">argv</span><span class="p">[])</span>
+<span class="p">{</span>
+	<span class="n">HWND</span> <span class="n">hwnd</span> <span class="o">=</span> <span class="n">FindWindow</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s">L"最终幻想XIV"</span><span class="p">);</span>
+	<span class="k">if</span> <span class="p">(</span><span class="n">hwnd</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">"Error:Can't find window!"</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
+	<span class="k">else</span> <span class="p">{</span>
+		<span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">"Log:Find hwnd is "</span> <span class="o">&lt;&lt;</span> <span class="n">hwnd</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
+		<span class="n">DWORD</span> <span class="n">proc_id</span><span class="p">;</span>
+		<span class="n">GetWindowThreadProcessId</span><span class="p">(</span><span class="n">hwnd</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">proc_id</span><span class="p">);</span>
+		<span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">"Log:Get PID is "</span> <span class="o">&lt;&lt;</span> <span class="n">proc_id</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
+		<span class="n">PostMessage</span><span class="p">(</span><span class="n">hwnd</span><span class="p">,</span> <span class="n">WM_KEYDOWN</span><span class="p">,</span> <span class="n">VkKeyScan</span><span class="p">(</span><span class="sc">'a'</span><span class="p">),</span> <span class="mi">0</span><span class="p">);</span>
+		<span class="n">Sleep</span><span class="p">(</span><span class="mi">500</span><span class="p">);</span>
+		<span class="n">PostMessage</span><span class="p">(</span><span class="n">hwnd</span><span class="p">,</span> <span class="n">WM_KEYUP</span><span class="p">,</span> <span class="n">VkKeyScan</span><span class="p">(</span><span class="sc">'a'</span><span class="p">),</span> <span class="mi">0</span><span class="p">);</span>
+	<span class="p">}</span>
+	<span class="n">system</span><span class="p">(</span><span class="s">"pause"</span><span class="p">);</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>但在不经意中了解到，获得窗口句柄，然后使用<code class="highlighter-rouge">GetWindowThreadProcessID()</code>即可获得窗口对应的进程ID，再用<code class="highlighter-rouge">OpenProcess()</code>甚至可以获得进程权限，进行对其内存的读写。如下：</p>
+
+<figure class="highlight"><pre><code class="language-c" data-lang="c"><span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="k">const</span> <span class="o">*</span><span class="n">argv</span><span class="p">[])</span>
+<span class="p">{</span>
+	<span class="n">HWND</span> <span class="n">hwnd</span> <span class="o">=</span> <span class="n">FindWindow</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s">L"最终幻想XIV"</span><span class="p">);</span>
+	<span class="k">if</span> <span class="p">(</span><span class="n">hwnd</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">"Error:Can't find window!"</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
+	<span class="k">else</span> <span class="p">{</span>
+		<span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">"Log:Find hwnd is "</span> <span class="o">&lt;&lt;</span> <span class="n">hwnd</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
+		<span class="n">DWORD</span> <span class="n">proc_id</span><span class="p">;</span>
+		<span class="n">GetWindowThreadProcessId</span><span class="p">(</span><span class="n">hwnd</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">proc_id</span><span class="p">);</span>
+		<span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">"Log:Get PID is "</span> <span class="o">&lt;&lt;</span> <span class="n">proc_id</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
+		<span class="n">HANDLE</span> <span class="n">hProc</span> <span class="o">=</span> <span class="n">OpenProcess</span><span class="p">(</span><span class="n">PROCESS_ALL_ACCESS</span><span class="p">,</span> <span class="n">FALSE</span><span class="p">,</span> <span class="n">procId</span><span class="p">);</span>
+		<span class="n">DWORD</span> <span class="n">adr</span> <span class="o">=</span> <span class="n">xxxx</span><span class="p">;</span>
+		<span class="n">DWORD</span> <span class="n">pointed</span><span class="p">;</span>
+		<span class="n">ReadProcessMemory</span><span class="p">(</span><span class="n">hProc</span><span class="p">,</span> <span class="p">(</span><span class="n">LPCVOID</span><span class="p">)</span><span class="n">adr</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">pointed</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span><span class="nb">NULL</span><span class="p">)</span>
+	<span class="p">}</span>
+	<span class="n">system</span><span class="p">(</span><span class="s">"pause"</span><span class="p">);</span>
+<span class="p">}</span></code></pre></figure>
+
+<blockquote>
+  <p>adr即为需要提前找好的内存地址，<code class="highlighter-rouge">ReadProcessMemory()</code>会读取数据存放在pointed中。（adr的寻找、偏移的确定都会在第二篇中进行讲解）</p>
+</blockquote>
+
+<p>这样读取虽然简单粗暴，可是当程序运行时，动态数据会加载到内存中，要想定位变量位置，需要采用<code class="highlighter-rouge">基址+偏移</code>的方式来构成指针，在复杂的情况下，可能会有多次偏移，经过多层指针才能得到目标数据所在的位置，而这次的ffxiv就是如此。</p>
+
+<p>通过其他工具直接获取数据地址，再使用自己编写的程序直接读取，这样未免太蠢，这个地址在每次ffxiv运行时都会变化，需要找到方法确定动态的基址和静态的偏移，两者结合便可找到数据的位置，无需借助其他工具。</p>
+
+<p>而确定基址，便是确定<code class="highlighter-rouge">ffxiv_dx11.exe</code>的入口地址，在游戏进程下，会有多个模块，而模块入口地址的确定有多种方法，在这里我提供一种方法，在现情境下，我们只需找到<code class="highlighter-rouge">ffxiv_dx11.exe</code>的入口地址。</p>
+
+<figure class="highlight"><pre><code class="language-c" data-lang="c"><span class="cp">#include &lt;Tlhelp32.h&gt;
+</span>
+<span class="n">DWORD</span> <span class="nf">dwGetModuleBaseAddress</span><span class="p">(</span><span class="n">DWORD</span> <span class="n">dwProcessIdentifier</span><span class="p">,</span> <span class="n">TCHAR</span> <span class="o">*</span><span class="n">lpszModuleName</span><span class="p">)</span>
+<span class="p">{</span>
+	<span class="n">HANDLE</span> <span class="n">hSnapshot</span> <span class="o">=</span> <span class="n">CreateToolhelp32Snapshot</span><span class="p">(</span><span class="n">TH32CS_SNAPMODULE</span><span class="p">,</span> <span class="n">dwProcessIdentifier</span><span class="p">);</span>
+	<span class="n">DWORD</span> <span class="n">dwModuleBaseAddress</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+	<span class="k">if</span> <span class="p">(</span><span class="n">hSnapshot</span> <span class="o">==</span> <span class="n">INVALID_HANDLE_VALUE</span><span class="p">)</span> <span class="p">{</span>
+		<span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">"ERROR: CreateToolhelp Failed"</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
+		<span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">GetLastError</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
+	<span class="p">}</span>
+	<span class="k">else</span>
+	<span class="p">{</span>
+		<span class="n">MODULEENTRY32</span> <span class="n">ModuleEntry32</span> <span class="o">=</span> <span class="p">{</span> <span class="mi">0</span> <span class="p">};</span>
+		<span class="n">ModuleEntry32</span><span class="p">.</span><span class="n">dwSize</span> <span class="o">=</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">MODULEENTRY32</span><span class="p">);</span>
+		<span class="k">if</span> <span class="p">(</span><span class="n">Module32First</span><span class="p">(</span><span class="n">hSnapshot</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">ModuleEntry32</span><span class="p">))</span>
+		<span class="p">{</span>
+			<span class="k">do</span>
+			<span class="p">{</span>
+				<span class="k">if</span> <span class="p">(</span><span class="n">_tcscmp</span><span class="p">(</span><span class="n">ModuleEntry32</span><span class="p">.</span><span class="n">szModule</span><span class="p">,</span> <span class="n">lpszModuleName</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+				<span class="p">{</span>
+					<span class="n">dwModuleBaseAddress</span> <span class="o">=</span> <span class="p">(</span><span class="n">DWORD</span><span class="p">)</span><span class="n">ModuleEntry32</span><span class="p">.</span><span class="n">modBaseAddr</span><span class="p">;</span>
+					<span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">"OK"</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
+					<span class="k">break</span><span class="p">;</span>
+				<span class="p">}</span>
+			<span class="p">}</span> <span class="k">while</span> <span class="p">(</span><span class="n">Module32Next</span><span class="p">(</span><span class="n">hSnapshot</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">ModuleEntry32</span><span class="p">));</span>
+		<span class="p">}</span>
+		<span class="k">else</span> <span class="p">{</span>
+			<span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">"ERROR: Module32First Failed"</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
+		<span class="p">}</span>
+		<span class="n">CloseHandle</span><span class="p">(</span><span class="n">hSnapshot</span><span class="p">);</span>
+	<span class="p">}</span>
+	<span class="k">return</span> <span class="n">dwModuleBaseAddress</span><span class="p">;</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>使用<code class="highlighter-rouge">CreateToolhelp32Snapshot()</code>来获取ffxiv游戏进程的一份快照，该快照中含有进程下模块的信息。使用VS调试，可以看到模块的信息。</p>
+
+<p>多次打开<code class="highlighter-rouge">ffxiv_dx11.exe</code>，获取<code class="highlighter-rouge">ffxiv_dx11.exe</code>的入口地址，观察规律，会发现有惊喜。</p>
+
+    </article>
+
+    
+    <div class="social-share-wrapper">
+      <div class="social-share"></div>
+    </div>
+    
+  </div>
+
+  <section class="author-detail">
+    <section class="post-footer-item author-card">
+      <div class="avatar">
+        <img src="https://xinrea.net/assets/img/profile.png" alt="">
+      </div>
+      <div class="author-name" rel="author">黄涵</div>
+      <div class="bio">
+        <p>拖延症晚期患者，兴趣广泛，但无一精通</p>
+      </div>
+      
+      <ul class="sns-links">
+        
+        <li>
+          <a href="//github.com/Xinrea" target="_blank">
+                    <i class="iconfont icon-github"></i>
+                </a>
+        </li>
+        
+      </ul>
+      
+    </section>
+    <section class="post-footer-item read-next">
+      
+      <div class="read-next-item">
+        <a href="/2017/09/20/ffxiv-memory-read-2.html" class="read-next-link"></a>
+        <section>
+          <span>FinalFantasyXIV 内存数据的读取（2）</span>
+          <p>上篇最后，给出了VS调试ffxiv_dx11.exe的图，可以看到，在我的环境下，其载入内存后基地址为0x0000...</p>
+        </section>
+        
+     </div>
+      
+
+      
+      <div class="read-next-item">
+        <a href="/2017/09/17/linux-learn-fork.html" class="read-next-link"></a>
+          <section>
+            <span>linux下 fork()函数的使用</span>
+            <p>fork()函数</p>
+          </section>
+          
+      </div>
+      
+    </section>
+    <section class="post-footer-item comment">
+      <div id="disqus_thread"></div>
+    </section>
+  </section>
+
+  <footer class="g-footer">
+  <section>Xinrea的个人博客 ©
+  
+  
+    2017
+    -
+  
+  2018
+  </section>
+  <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+</footer>
+
+
+  <script src="/assets/js/social-share.min.js"></script>
+  <script>
+    socialShare('.social-share', {
+      sites: [
+        
+          'wechat'
+          ,
+          
+        
+          'weibo'
+          ,
+          
+        
+          'douban'
+          ,
+          
+        
+          'twitter'
+          
+        
+      ],
+      wechatQrcodeTitle: "分享到微信朋友圈",
+      wechatQrcodeHelper: '<p>扫码后点击右上角</p><p>将本文分享至朋友圈</p>'
+    });
+  </script>
+
+  
+
+  <script src="/assets/js/prism.js"></script>
+  <script src="/assets/js/index.min.js"></script>
+</body>
+
+</html>

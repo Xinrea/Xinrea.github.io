@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>爬取bilibili视频封面 - Xinrea的个人博客</title>
+    <meta name="author"  content="黄涵">
+    <meta name="description" content="爬取bilibili视频封面">
+    <meta name="keywords"  content="">
+    <!-- Open Graph -->
+    <meta property="og:title" content="爬取bilibili视频封面 - Xinrea的个人博客">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://xinrea.net/2017/09/17/bilibili-python-spider.html">
+    <meta property="og:description" content="C++/Python/Java - Game/Music/Animation">
+    <meta property="og:site_name" content="Xinrea的个人博客">
+    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
+    <link rel="stylesheet" href="/assets/css/github-markdown.css">
+    <link rel="stylesheet" href="/assets/css/prism.css">
+    <link rel="stylesheet" href="/assets/css/share.min.css">
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+	
+	<!--
+Author: Ray-Eldath
+refer to:
+ - http://docs.mathjax.org/en/latest/options/index.html
+-->
+
+	<script type="text/javascript" async src="https://cdn.bootcss.com/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+	
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+		jax: ["input/TeX", "output/HTML-CSS"],
+		tex2jax: {
+			inlineMath: [ ["$", "$"] ],
+			displayMath: [ ["$$", "$$"] ],
+			skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+		},
+		"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"] }
+      });
+    </script>
+
+	
+    <!--
+Author: Ray-Eldath
+-->
+<style>
+    .markdown-body .anchor{
+        float: left;
+        margin-top: -8px;
+        margin-left: -20px;
+        padding-right: 4px;
+        line-height: 1;
+        opacity: 0;
+    }
+    
+    .markdown-body .anchor .anchor-icon{
+        font-size: 15px
+    }
+</style>
+<script>
+    $(document).ready(function() {
+        let nodes = document.querySelector(".markdown-body").querySelectorAll("h1,h2,h3")
+        for(let node of nodes) {
+            var anchor = document.createElement("a")
+            var anchorIcon = document.createElement("i")
+            anchorIcon.setAttribute("class", "fa fa-anchor fa-lg anchor-icon")
+            anchorIcon.setAttribute("aria-hidden", true)
+            anchor.setAttribute("class", "anchor")
+            anchor.setAttribute("href", "#" + node.getAttribute("id"))
+            
+            anchor.onmouseover = function() {
+                this.style.opacity = "0.4"
+            }
+            
+            anchor.onmouseout = function() {
+                this.style.opacity = "0"
+            }
+            
+            anchor.appendChild(anchorIcon)
+            node.appendChild(anchor)
+        }
+    })
+</script>
+</head>
+
+
+<body>
+  <!--[if lt IE 10]>
+<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+<![endif]-->
+  <input id="nm-switch" type="hidden" value="false"> <header class="g-header">
+    <div class="g-logo">
+      <a href="/"></a>
+    </div>
+    <i id="menu-toggle" class="iconfont icon-menu"></i>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="/tags.html">tags</a></li>
+            
+        </ul>
+    </nav>
+</header>
+
+
+  <header class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover" data-theme="default">
+    <div class="post-wrapper">
+      <div class="post-tags">
+        
+      </div>
+      <h1>爬取bilibili视频封面</h1>
+      <div class="post-meta">
+        <span class="post-meta-item"><i class="iconfont icon-author"></i><a href="https://xinrea.net" target="_blank" rel="author">黄涵</a></></span>
+        <time class="post-meta-item" datetime="17-09-17"><i class="iconfont icon-date"></i>17 Sep 2017</time>
+      </div>
+    </div>
+    
+  </header>
+
+  <div class="post-content visible">
+    
+
+    <article class="markdown-body">
+      <p>###目标###</p>
+<ul>
+  <li>能够爬取指定up主视频封面</li>
+  <li>能够设定爬取封面数量</li>
+</ul>
+
+<p>###工具###
+python3 / chrome</p>
+
+<p>###思路###</p>
+
+<p>首先，直接查看加载完成后的网页源代码，例如：<br />
+<a href="http://space.bilibili.com/879702/#!/video">up主Shymieeeee的稿件</a></p>
+
+<p>发现源代码中并未包含与视频封面图相关的信息，而是在body中包含着如下的信息</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;div id="browser-version-tip"&gt;
+  &lt;div class="wrapper"&gt;
+    抱歉，您正在使用不支持的浏览器访问个人空间。推荐您&lt;a href="//www.google.cn/chrome/browser/desktop/index.html"&gt;安装 Chrome 浏览器&lt;/a&gt;以获得更好的体验 ヾ(o◕∀◕)ﾉ
+    &lt;a href="javascript:;" id="close-browser-tip"&gt;&lt;/a&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="space-body"&gt;&lt;/div&gt;
+</code></pre></div></div>
+
+<p>在使用chrome审查元素时，能够看到网页中包含着相关信息：</p>
+
+<p><img src="https://xinrea.net/assets/pic9172210.png" alt="审查工具查看结果" /></p>
+
+<p>可见整个网页是使用js动态生成的，要找到数据的来源，可以使用chrome工具中的Network，查看网页在加载过程中加载了哪些数据，选择查看XHR类型，可以找到如下图所示的数据：</p>
+
+<p><img src="https://xinrea.net/assets/pic9172215.png" alt="Network-XHR" /></p>
+
+<p>分析数据，可以看出，在json数据中，[“data”][“vlist”]中的各项list均为稿件信息，其中每个list中的[“pic”]即为视频封面的地址。</p>
+
+<p><img src="https://xinrea.net/assets/pic9172218.png" alt="数据结构分析" /></p>
+
+<p>###设计###</p>
+
+<p>整个代码十分简洁，如下所示：</p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="kn">import</span> <span class="nn">urllib.request</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="n">upID</span> <span class="o">=</span> <span class="mi">879702</span>
+<span class="n">num</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="s">'https://space.bilibili.com/ajax/member/getSubmitVideos?mid='</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">upID</span><span class="p">)</span><span class="o">+</span><span class="s">'&amp;pagesize='</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">num</span><span class="p">)</span><span class="o">+</span><span class="s">'&amp;tid=0&amp;page=1&amp;keyword=&amp;order=pubdate'</span><span class="p">)</span>
+<span class="n">jsondata</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">jsondata</span><span class="p">[</span><span class="s">'data'</span><span class="p">][</span><span class="s">'vlist'</span><span class="p">]:</span>
+    <span class="n">imgdata</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="s">'http:'</span><span class="o">+</span><span class="n">item</span><span class="p">[</span><span class="s">'pic'</span><span class="p">])</span>
+    <span class="n">img</span> <span class="o">=</span> <span class="n">imgdata</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="nb">file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">upID</span><span class="p">)</span><span class="o">+</span><span class="s">'img'</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">+</span><span class="s">'.jpg'</span><span class="p">,</span><span class="s">'wb'</span><span class="p">)</span>
+    <span class="nb">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="mi">1</span></code></pre></figure>
+
+<p>先使用urlib模块获取数据，使用json模块解析数据，然后查找到封面图的位置，进行下载保存，代码中upID用于设置up主ID，num为爬取的封面数量，测试可完美达成目标。</p>
+
+<p>如有任何疑问，欢迎微博/bilibili私信，相关信息在about页面。</p>
+
+    </article>
+
+    
+    <div class="social-share-wrapper">
+      <div class="social-share"></div>
+    </div>
+    
+  </div>
+
+  <section class="author-detail">
+    <section class="post-footer-item author-card">
+      <div class="avatar">
+        <img src="https://xinrea.net/assets/img/profile.png" alt="">
+      </div>
+      <div class="author-name" rel="author">黄涵</div>
+      <div class="bio">
+        <p>拖延症晚期患者，兴趣广泛，但无一精通</p>
+      </div>
+      
+      <ul class="sns-links">
+        
+        <li>
+          <a href="//github.com/Xinrea" target="_blank">
+                    <i class="iconfont icon-github"></i>
+                </a>
+        </li>
+        
+      </ul>
+      
+    </section>
+    <section class="post-footer-item read-next">
+      
+      <div class="read-next-item">
+        <a href="/2017/09/17/network-note-1.html" class="read-next-link"></a>
+        <section>
+          <span>储存转发传输 - 传输时间计算</span>
+          <p>计算机网络储存转发传输 - 传输时间计算  传播时延不予考虑由N条速率均为R的链路组成的路径, 从源到目的地发送一...</p>
+        </section>
+        
+     </div>
+      
+
+      
+    </section>
+    <section class="post-footer-item comment">
+      <div id="disqus_thread"></div>
+    </section>
+  </section>
+
+  <footer class="g-footer">
+  <section>Xinrea的个人博客 ©
+  
+  
+    2017
+    -
+  
+  2018
+  </section>
+  <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+</footer>
+
+
+  <script src="/assets/js/social-share.min.js"></script>
+  <script>
+    socialShare('.social-share', {
+      sites: [
+        
+          'wechat'
+          ,
+          
+        
+          'weibo'
+          ,
+          
+        
+          'douban'
+          ,
+          
+        
+          'twitter'
+          
+        
+      ],
+      wechatQrcodeTitle: "分享到微信朋友圈",
+      wechatQrcodeHelper: '<p>扫码后点击右上角</p><p>将本文分享至朋友圈</p>'
+    });
+  </script>
+
+  
+
+  <script src="/assets/js/prism.js"></script>
+  <script src="/assets/js/index.min.js"></script>
+</body>
+
+</html>

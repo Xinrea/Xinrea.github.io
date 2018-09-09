@@ -3,40 +3,362 @@
   <channel>
     <title>Xinrea的个人博客</title>
     <description>C++/Python/Java - Game/Music/Animation</description>
-    <link>http://localhost:4000/</link>
-    <atom:link href="http://localhost:4000/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Mon, 10 Sep 2018 00:07:04 +0800</pubDate>
-    <lastBuildDate>Mon, 10 Sep 2018 00:07:04 +0800</lastBuildDate>
+    <link>https://xinrea.net/</link>
+    <atom:link href="https://xinrea.net/feed.xml" rel="self" type="application/rss+xml" />
+    <pubDate>Mon, 10 Sep 2018 00:42:50 +0800</pubDate>
+    <lastBuildDate>Mon, 10 Sep 2018 00:42:50 +0800</lastBuildDate>
     <generator>Jekyll v3.8.3</generator>
     
       <item>
-        <title>Hello Jekyll</title>
-        <description>&lt;blockquote&gt;
-  &lt;p&gt;Transform your plain text into static websites and blogs.&lt;/p&gt;
+        <title>FinalFantasyXIV 内存数据的读取（3）</title>
+        <description>&lt;p&gt;对于变量的定位，在此推荐使用&lt;code class=&quot;highlighter-rouge&quot;&gt;Cheat Engine&lt;/code&gt;，算是一个远古神器吧，许多游戏辅助工具都需要借助这个工具。下面是&lt;code class=&quot;highlighter-rouge&quot;&gt;Cheat Engine&lt;/code&gt;的主界面截图：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://xinrea.net/assets/pic9212218.png&quot; alt=&quot;Cheat Engine 主界面&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;由于这个工具出现有了一定的年头了，详细的使用方法不会在本文中进行详细介绍，读者可自行查阅资料进行使用。&lt;/p&gt;
+
+&lt;p&gt;以技能&lt;code class=&quot;highlighter-rouge&quot;&gt;猛者&lt;/code&gt;为例，要找到其cd时间变量的位置，需要先使用技能，然后根据剩余时间进行&lt;code class=&quot;highlighter-rouge&quot;&gt;精确扫描&lt;/code&gt;和&lt;code class=&quot;highlighter-rouge&quot;&gt;比···小&lt;/code&gt;两种扫描方式，可定位到如下图所示的五个地址，双击加入到列表中，右键任意地址，选择&lt;code class=&quot;highlighter-rouge&quot;&gt;找出是什么改写了这个地址&lt;/code&gt;，可以看到这个地址的计算方法，即其指针为&lt;code class=&quot;highlighter-rouge&quot;&gt;RDX+4*RAX&lt;/code&gt;，可以手动一层一层分析指针，也可右键地址，选择&lt;code class=&quot;highlighter-rouge&quot;&gt;扫描当前地址指针&lt;/code&gt;，可自动寻找到指向变量地址的指针。&lt;/p&gt;
+
+&lt;p&gt;重复打开游戏，进行变量地址的指针扫描，会使得列表中的指针数量越来越少，最后会发现游戏中有几个指针是固定指向该地址的，而且表中给出了各处的偏移量，不同指针的区别可能与角色的其他状态有关，需要读者自行验证，最终找到了通用的指针偏移表便是成功。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://xinrea.net/assets/pic9212312.png&quot; alt=&quot;扫描变量地址&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;最终给出一路上所查阅到的相关资料：&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://blog.csdn.net/junbopengpeng/article/details/40786291&quot;&gt;bobopeng的csdn博客&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://stackoverflow.com/questions/37792725/how-do-i-get-the-base-address-of-another-process-aslr&quot;&gt;stackoverflow相关提问&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://en.wikipedia.org/wiki/Virtual_address_space&quot;&gt;wiki&lt;/a&gt;&lt;/p&gt;
+</description>
+        <pubDate>Thu, 21 Sep 2017 22:27:00 +0800</pubDate>
+        <link>https://xinrea.net/2017/09/21/ffxiv-memory-read-3.html</link>
+        <guid isPermaLink="true">https://xinrea.net/2017/09/21/ffxiv-memory-read-3.html</guid>
+        
+        
+        <category>windows</category>
+        
+        <category>c++</category>
+        
+        <category>memory</category>
+        
+      </item>
+    
+      <item>
+        <title>FinalFantasyXIV 内存数据的读取（2）</title>
+        <description>&lt;p&gt;上篇最后，给出了VS调试&lt;code class=&quot;highlighter-rouge&quot;&gt;ffxiv_dx11.exe&lt;/code&gt;的图，可以看到，在我的环境下，其载入内存后基地址为&lt;code class=&quot;highlighter-rouge&quot;&gt;0x00007FF68AE90000&lt;/code&gt;，若多次启动游戏进程，会发现其地址似乎是一个固定值，但是又似乎找不到这个地址从何而来，实际上，要弄清楚基址从何而来，需要了解程序运行的机制。&lt;/p&gt;
+
+&lt;p&gt;一个程序，有大量的信息储存在了PE头内，我们主要关心其中与基地址有关的信息，如下图所示：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://xinrea.net/assets/pic9202041.png&quot; alt=&quot;ffxiv_dx11.exe的PE头&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;在程序运行时，获得的内存空间对于其本身来看是连续的，这其实是一块虚拟出来的内存，要对应到真实的物理地址还需要经过一系列操作才能达成，但对于进程本身视角来看，其操作管理的内存的确是连续的，因此对自己的空间不需要考虑过多的问题。&lt;/p&gt;
+
+&lt;p&gt;由于可以使用虚拟地址进行映射，程序运行的虚拟基地址并不会被其他程序所干扰，因此程序在运行时会被加载到同一个ImageBase地址上，如32位上的&lt;code class=&quot;highlighter-rouge&quot;&gt;0x00400000&lt;/code&gt;，以及上图中所示的64位上的&lt;code class=&quot;highlighter-rouge&quot;&gt;0x0000000140000000&lt;/code&gt;，在此基础上加上AdressOfEntryPoint即可得到入口地址。&lt;/p&gt;
+
+&lt;p&gt;这样看来，是不是首地址就相当于清晰地写在了文件里，只需要读出即可，而且固定不变呢？&lt;/p&gt;
+
+&lt;p&gt;问题当然没有这么简单，从上面的两张图中可以看出，实际与理论值完全不一样，这就涉及到了ASLR的问题。&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;aslr是一种针对缓冲区溢出的安全保护技术，通过对堆、栈、共享库映射等线性区布局的随机化，通过增加攻击者预测目的地址的难度，防止攻击者直接定位攻击代码位置，达到阻止溢出攻击的目的的一种技术。&lt;/p&gt;
 &lt;/blockquote&gt;
 
-&lt;h3 id=&quot;welcome&quot;&gt;Welcome&lt;/h3&gt;
+&lt;p&gt;为了增强安全性，ASLR使加载时ImageBase并不是固定值，这一设定可以在编译器中进行设置，默认是开启的。启动加载时的ImageBase会随着某些状态的改变而发生变化，在固定状态下重复运行的话，基地址似乎也不会发生变化。&lt;/p&gt;
 
-&lt;p&gt;This site aims to be a comprehensive guide to Jekyll. We’ll cover topics such as getting your site up and running, creating and managing your content, customizing the way your site works and looks, deploying to various environments, and give you some advice on participating in the future development of Jekyll itself.&lt;/p&gt;
+&lt;p&gt;因此，要获取&lt;code class=&quot;highlighter-rouge&quot;&gt;ffxiv_dx11.exe&lt;/code&gt;运行时的基地址，就只能动态地获取。&lt;/p&gt;
 
-&lt;h3 id=&quot;so-what-is-jekyll-exactlypermalink&quot;&gt;So what is Jekyll, exactly?Permalink&lt;/h3&gt;
-
-&lt;p&gt;Jekyll is a simple, blog-aware, static site generator. It takes a template directory containing raw text files in various formats, runs it through a converter (like &lt;a href=&quot;https://daringfireball.net/projects/markdown/&quot;&gt;Markdown&lt;/a&gt;) and our &lt;a href=&quot;https://github.com/Shopify/liquid/wiki&quot;&gt;Liquid&lt;/a&gt; renderer, and spits out a complete, ready-to-publish static website suitable for serving with your favorite web server. Jekyll also happens to be the engine behind GitHub Pages, which means you can use Jekyll to host your project’s page, blog, or website from GitHub’s servers for free.&lt;/p&gt;
-
-&lt;h3 id=&quot;helpful-hintspermalink&quot;&gt;Helpful HintsPermalink&lt;/h3&gt;
-
-&lt;p&gt;Throughout this guide there are a number of small-but-handy pieces of information that can make using Jekyll easier, more interesting, and less hazardous. Here’s what to look out for.&lt;/p&gt;
-
-&lt;h3 id=&quot;video-test&quot;&gt;Video Test&lt;/h3&gt;
-
-&lt;iframe type=&quot;text/html&quot; width=&quot;100%&quot; height=&quot;385&quot; src=&quot;http://www.youtube.com/embed/gfmjMWjn-Xg&quot; frameborder=&quot;0&quot;&gt;&lt;/iframe&gt;
+&lt;p&gt;使用（1）中的方法便可动态获得游戏的基地址，接下来的任务便是定位变量。&lt;/p&gt;
 </description>
-        <pubDate>Tue, 18 Apr 2017 00:00:00 +0800</pubDate>
-        <link>http://localhost:4000/2017/04/18/hello-jekyll.html</link>
-        <guid isPermaLink="true">http://localhost:4000/2017/04/18/hello-jekyll.html</guid>
+        <pubDate>Wed, 20 Sep 2017 20:27:00 +0800</pubDate>
+        <link>https://xinrea.net/2017/09/20/ffxiv-memory-read-2.html</link>
+        <guid isPermaLink="true">https://xinrea.net/2017/09/20/ffxiv-memory-read-2.html</guid>
         
-        <category>jekyll</category>
         
+        <category>windows</category>
+        
+        <category>c++</category>
+        
+        <category>memory</category>
+        
+      </item>
+    
+      <item>
+        <title>FinalFantasyXIV 内存数据的读取（1）</title>
+        <description>&lt;p&gt;前几天突发奇想，想通过模拟按键的方式来操作ffxiv，以实现类似于电影拍摄中的视角移动，为广大游戏视频制作者提供帮助。&lt;/p&gt;
+
+&lt;p&gt;但是ffxiv作为一款使用diretX开发的游戏，其游戏窗口屏蔽了在外的按键模拟信息，简单的&lt;code class=&quot;highlighter-rouge&quot;&gt;keybd_event()&lt;/code&gt;和&lt;code class=&quot;highlighter-rouge&quot;&gt;mouse_event()&lt;/code&gt;并无法实现对游戏内的模拟操作，在网上查询一系列资料后，发现只要能够获取窗口的句柄，便能够轻松地使用&lt;code class=&quot;highlighter-rouge&quot;&gt;PostMessage()&lt;/code&gt;方式模拟按键信息，实现代码如下：&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-c&quot; data-lang=&quot;c&quot;&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;argc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;argv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[])&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;HWND&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;hwnd&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;FindWindow&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;L&quot;最终幻想XIV&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+	&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;hwnd&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cout&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;Error:Can't find window!&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;endl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+	&lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+		&lt;span class=&quot;n&quot;&gt;cout&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;Log:Find hwnd is &quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;hwnd&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;endl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+		&lt;span class=&quot;n&quot;&gt;DWORD&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;proc_id&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+		&lt;span class=&quot;n&quot;&gt;GetWindowThreadProcessId&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;hwnd&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;proc_id&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+		&lt;span class=&quot;n&quot;&gt;cout&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;Log:Get PID is &quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;proc_id&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;endl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+		&lt;span class=&quot;n&quot;&gt;PostMessage&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;hwnd&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;WM_KEYDOWN&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;VkKeyScan&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;sc&quot;&gt;'a'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+		&lt;span class=&quot;n&quot;&gt;Sleep&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;500&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+		&lt;span class=&quot;n&quot;&gt;PostMessage&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;hwnd&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;WM_KEYUP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;VkKeyScan&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;sc&quot;&gt;'a'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+	&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;system&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;pause&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;但在不经意中了解到，获得窗口句柄，然后使用&lt;code class=&quot;highlighter-rouge&quot;&gt;GetWindowThreadProcessID()&lt;/code&gt;即可获得窗口对应的进程ID，再用&lt;code class=&quot;highlighter-rouge&quot;&gt;OpenProcess()&lt;/code&gt;甚至可以获得进程权限，进行对其内存的读写。如下：&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-c&quot; data-lang=&quot;c&quot;&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;argc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;argv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[])&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;HWND&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;hwnd&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;FindWindow&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;L&quot;最终幻想XIV&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+	&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;hwnd&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cout&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;Error:Can't find window!&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;endl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+	&lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+		&lt;span class=&quot;n&quot;&gt;cout&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;Log:Find hwnd is &quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;hwnd&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;endl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+		&lt;span class=&quot;n&quot;&gt;DWORD&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;proc_id&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+		&lt;span class=&quot;n&quot;&gt;GetWindowThreadProcessId&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;hwnd&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;proc_id&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+		&lt;span class=&quot;n&quot;&gt;cout&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;Log:Get PID is &quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;proc_id&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;endl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+		&lt;span class=&quot;n&quot;&gt;HANDLE&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;hProc&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;OpenProcess&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;PROCESS_ALL_ACCESS&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;FALSE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;procId&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+		&lt;span class=&quot;n&quot;&gt;DWORD&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;adr&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;xxxx&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+		&lt;span class=&quot;n&quot;&gt;DWORD&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pointed&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+		&lt;span class=&quot;n&quot;&gt;ReadProcessMemory&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;hProc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;LPCVOID&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;adr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pointed&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;NULL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+	&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;system&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;pause&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;adr即为需要提前找好的内存地址，&lt;code class=&quot;highlighter-rouge&quot;&gt;ReadProcessMemory()&lt;/code&gt;会读取数据存放在pointed中。（adr的寻找、偏移的确定都会在第二篇中进行讲解）&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;这样读取虽然简单粗暴，可是当程序运行时，动态数据会加载到内存中，要想定位变量位置，需要采用&lt;code class=&quot;highlighter-rouge&quot;&gt;基址+偏移&lt;/code&gt;的方式来构成指针，在复杂的情况下，可能会有多次偏移，经过多层指针才能得到目标数据所在的位置，而这次的ffxiv就是如此。&lt;/p&gt;
+
+&lt;p&gt;通过其他工具直接获取数据地址，再使用自己编写的程序直接读取，这样未免太蠢，这个地址在每次ffxiv运行时都会变化，需要找到方法确定动态的基址和静态的偏移，两者结合便可找到数据的位置，无需借助其他工具。&lt;/p&gt;
+
+&lt;p&gt;而确定基址，便是确定&lt;code class=&quot;highlighter-rouge&quot;&gt;ffxiv_dx11.exe&lt;/code&gt;的入口地址，在游戏进程下，会有多个模块，而模块入口地址的确定有多种方法，在这里我提供一种方法，在现情境下，我们只需找到&lt;code class=&quot;highlighter-rouge&quot;&gt;ffxiv_dx11.exe&lt;/code&gt;的入口地址。&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-c&quot; data-lang=&quot;c&quot;&gt;&lt;span class=&quot;cp&quot;&gt;#include &amp;lt;Tlhelp32.h&amp;gt;
+&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;DWORD&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;dwGetModuleBaseAddress&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;DWORD&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dwProcessIdentifier&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TCHAR&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;lpszModuleName&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;HANDLE&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;hSnapshot&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CreateToolhelp32Snapshot&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TH32CS_SNAPMODULE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dwProcessIdentifier&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;DWORD&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dwModuleBaseAddress&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+	&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;hSnapshot&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;INVALID_HANDLE_VALUE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+		&lt;span class=&quot;n&quot;&gt;cout&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;ERROR: CreateToolhelp Failed&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;endl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+		&lt;span class=&quot;n&quot;&gt;cout&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;GetLastError&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;endl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+	&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+	&lt;span class=&quot;k&quot;&gt;else&lt;/span&gt;
+	&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+		&lt;span class=&quot;n&quot;&gt;MODULEENTRY32&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ModuleEntry32&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;
+		&lt;span class=&quot;n&quot;&gt;ModuleEntry32&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dwSize&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;sizeof&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;MODULEENTRY32&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+		&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Module32First&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;hSnapshot&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ModuleEntry32&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+		&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+			&lt;span class=&quot;k&quot;&gt;do&lt;/span&gt;
+			&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+				&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_tcscmp&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ModuleEntry32&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;szModule&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lpszModuleName&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+				&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+					&lt;span class=&quot;n&quot;&gt;dwModuleBaseAddress&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;DWORD&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ModuleEntry32&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;modBaseAddr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+					&lt;span class=&quot;n&quot;&gt;cout&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;OK&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;endl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+					&lt;span class=&quot;k&quot;&gt;break&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+				&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+			&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;while&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Module32Next&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;hSnapshot&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ModuleEntry32&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;));&lt;/span&gt;
+		&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+		&lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+			&lt;span class=&quot;n&quot;&gt;cout&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;ERROR: Module32First Failed&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;endl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+		&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+		&lt;span class=&quot;n&quot;&gt;CloseHandle&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;hSnapshot&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+	&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+	&lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dwModuleBaseAddress&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;使用&lt;code class=&quot;highlighter-rouge&quot;&gt;CreateToolhelp32Snapshot()&lt;/code&gt;来获取ffxiv游戏进程的一份快照，该快照中含有进程下模块的信息。使用VS调试，可以看到模块的信息。&lt;/p&gt;
+
+&lt;p&gt;多次打开&lt;code class=&quot;highlighter-rouge&quot;&gt;ffxiv_dx11.exe&lt;/code&gt;，获取&lt;code class=&quot;highlighter-rouge&quot;&gt;ffxiv_dx11.exe&lt;/code&gt;的入口地址，观察规律，会发现有惊喜。&lt;/p&gt;
+</description>
+        <pubDate>Wed, 20 Sep 2017 08:00:00 +0800</pubDate>
+        <link>https://xinrea.net/2017/09/20/ffxiv-memory-read.html</link>
+        <guid isPermaLink="true">https://xinrea.net/2017/09/20/ffxiv-memory-read.html</guid>
+        
+        
+        <category>windows</category>
+        
+        <category>c++</category>
+        
+        <category>memory</category>
+        
+      </item>
+    
+      <item>
+        <title>linux下 fork()函数的使用</title>
+        <description>&lt;h3 id=&quot;fork函数&quot;&gt;fork()函数&lt;/h3&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;使用需添加头文件 &lt;code class=&quot;highlighter-rouge&quot;&gt;unistd.h&lt;/code&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;函数原型&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-c&quot; data-lang=&quot;c&quot;&gt;&lt;span class=&quot;n&quot;&gt;pid_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fork&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;pid_t为宏定义的int类型，若需使用，需&lt;code class=&quot;highlighter-rouge&quot;&gt;include sys/types.h&lt;/code&gt;文件&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;其返回值有三种情况：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;子进程返回0&lt;/li&gt;
+  &lt;li&gt;父进程返回子进程ID&lt;/li&gt;
+  &lt;li&gt;出错返回-1&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;简单使用情景&quot;&gt;简单使用情景&lt;/h3&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-c&quot; data-lang=&quot;c&quot;&gt;&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fork&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()){&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;statement1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;else&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;statement2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;由返回值的情况可以知道，父进程中执行&lt;code class=&quot;highlighter-rouge&quot;&gt;statement2&lt;/code&gt;，子进程中执行&lt;code class=&quot;highlighter-rouge&quot;&gt;statement1&lt;/code&gt;，两段代码可以“看作”在fork()之后，同时开始运行，但是实际顺序无法确定，请不要在竞争情景下使用。注意，fork()函数新建了进程来完成分支。&lt;/p&gt;
+
+&lt;p&gt;子进程在被创建时，会获得父进程数据空间、堆、栈等资源的副本。在CPU眼里，CPU每次任务只是读取上下文数据，进行处理，保存上下文数据，因而fork()产生的进程并非同时在进行，而是在两者之间不断的切换。&lt;/p&gt;
+
+&lt;p&gt;相比于多线程来说，切换进程时，CPU读取和保存上下文数据比切换线程时可能消耗资源更多，切换线程时由于仍在同一进程下，在很多方面具有优势。&lt;/p&gt;
+
+&lt;p&gt;使用fork()可以简单完成很多需要并行处理的操作，比如TCP连接中报文的发送和接收。&lt;/p&gt;
+
+&lt;p&gt;如果有任何问题，欢迎通过邮箱或者私信的方式与我联系。&lt;/p&gt;
+
+</description>
+        <pubDate>Sun, 17 Sep 2017 20:43:00 +0800</pubDate>
+        <link>https://xinrea.net/2017/09/17/linux-learn-fork.html</link>
+        <guid isPermaLink="true">https://xinrea.net/2017/09/17/linux-learn-fork.html</guid>
+        
+        
+        <category>linux</category>
+        
+        <category>learn</category>
+        
+      </item>
+    
+      <item>
+        <title>储存转发传输 - 传输时间计算</title>
+        <description>&lt;h1 id=&quot;计算机网络&quot;&gt;计算机网络&lt;/h1&gt;
+
+&lt;h4 id=&quot;储存转发传输---传输时间计算&quot;&gt;储存转发传输 - 传输时间计算&lt;/h4&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;传播时延不予考虑&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;由N条速率均为R的链路组成的路径, 从源到目的地发送一个分组的总体情况, 端到端时延为:&lt;/p&gt;
+
+&lt;p&gt;d&lt;sub&gt;端到端&lt;/sub&gt; = N·L/R&lt;/p&gt;
+
+&lt;p&gt;下面来分析P个分组经过N条链路序列的时延:&lt;/p&gt;
+
+&lt;p&gt;令T&lt;sub&gt;(p)&lt;/sub&gt;表示第P个分组刚好全部被最后一个路由器转发出去时的时间, 则有如下关系:&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;注意:T&lt;sub&gt;(p)&lt;/sub&gt;同时表示第P+1个分组刚开始被转发时的时间&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;T&lt;sub&gt;(p)&lt;/sub&gt;=T&lt;sub&gt;(p-1)&lt;/sub&gt;+L/R&lt;/p&gt;
+
+&lt;p&gt;第一个分组经过N条链路所用时间为:&lt;/p&gt;
+
+&lt;p&gt;d&lt;sub&gt;端到端&lt;/sub&gt; = N·L/R&lt;/p&gt;
+
+&lt;p&gt;即T&lt;sub&gt;(p)&lt;/sub&gt;=T&lt;sub&gt;(p-1)&lt;/sub&gt;+L/R=T&lt;sub&gt;(p-2)&lt;/sub&gt;+2L/R=…=T&lt;sub&gt;(1)&lt;/sub&gt;+(p-1)L/R=(N+p-1)L/R&lt;/p&gt;
+
+&lt;p&gt;同时,有另一种思考方式可以得出同样的结果:&lt;/p&gt;
+
+&lt;p&gt;将传输链路忽略, 只考虑N-1台路由器在其中的作用(原因是忽略了传播时延), 长度为L的分组通过路由器所需时间为2L/R, 若将路由器看作限速为
+R的路径, 其长度为L, 则长度为L的绳子以R的速度全部通过这段长度为L路径, 所用时间为2L/R.&lt;/p&gt;
+
+&lt;p&gt;对此进行类比, 若有N条链路, 则其中有N-1台路由器, P个分组的数据总长度为PL, 类比作通过限速为R, 长度为(N-1)L的路径,所需要的时间即为(P+N-1)L/R, 与递推方法得出的公式一致.&lt;/p&gt;
+</description>
+        <pubDate>Sun, 17 Sep 2017 20:43:00 +0800</pubDate>
+        <link>https://xinrea.net/2017/09/17/network-note-1.html</link>
+        <guid isPermaLink="true">https://xinrea.net/2017/09/17/network-note-1.html</guid>
+        
+        
+        <category>network</category>
+        
+        <category>learn</category>
+        
+      </item>
+    
+      <item>
+        <title>爬取bilibili视频封面</title>
+        <description>&lt;p&gt;###目标###&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;能够爬取指定up主视频封面&lt;/li&gt;
+  &lt;li&gt;能够设定爬取封面数量&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;###工具###
+python3 / chrome&lt;/p&gt;
+
+&lt;p&gt;###思路###&lt;/p&gt;
+
+&lt;p&gt;首先，直接查看加载完成后的网页源代码，例如：&lt;br /&gt;
+&lt;a href=&quot;http://space.bilibili.com/879702/#!/video&quot;&gt;up主Shymieeeee的稿件&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;发现源代码中并未包含与视频封面图相关的信息，而是在body中包含着如下的信息&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;lt;div id=&quot;browser-version-tip&quot;&amp;gt;
+  &amp;lt;div class=&quot;wrapper&quot;&amp;gt;
+    抱歉，您正在使用不支持的浏览器访问个人空间。推荐您&amp;lt;a href=&quot;//www.google.cn/chrome/browser/desktop/index.html&quot;&amp;gt;安装 Chrome 浏览器&amp;lt;/a&amp;gt;以获得更好的体验 ヾ(o◕∀◕)ﾉ
+    &amp;lt;a href=&quot;javascript:;&quot; id=&quot;close-browser-tip&quot;&amp;gt;&amp;lt;/a&amp;gt;
+  &amp;lt;/div&amp;gt;
+&amp;lt;/div&amp;gt;
+&amp;lt;div id=&quot;space-body&quot;&amp;gt;&amp;lt;/div&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;在使用chrome审查元素时，能够看到网页中包含着相关信息：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://xinrea.net/assets/pic9172210.png&quot; alt=&quot;审查工具查看结果&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;可见整个网页是使用js动态生成的，要找到数据的来源，可以使用chrome工具中的Network，查看网页在加载过程中加载了哪些数据，选择查看XHR类型，可以找到如下图所示的数据：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://xinrea.net/assets/pic9172215.png&quot; alt=&quot;Network-XHR&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;分析数据，可以看出，在json数据中，[“data”][“vlist”]中的各项list均为稿件信息，其中每个list中的[“pic”]即为视频封面的地址。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://xinrea.net/assets/pic9172218.png&quot; alt=&quot;数据结构分析&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;###设计###&lt;/p&gt;
+
+&lt;p&gt;整个代码十分简洁，如下所示：&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;urllib.request&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;json&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;upID&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;879702&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;num&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;100&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;data&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;urllib&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;request&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;urlopen&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'https://space.bilibili.com/ajax/member/getSubmitVideos?mid='&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;upID&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'&amp;amp;pagesize='&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;num&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'&amp;amp;tid=0&amp;amp;page=1&amp;amp;keyword=&amp;amp;order=pubdate'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;jsondata&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;json&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;load&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;item&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;jsondata&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'data'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;][&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'vlist'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]:&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;imgdata&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;urllib&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;request&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;urlopen&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'http:'&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;item&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'pic'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;img&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;imgdata&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;read&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;nb&quot;&gt;file&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;open&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;upID&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'img'&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'.jpg'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'wb'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;nb&quot;&gt;file&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;write&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;img&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;先使用urlib模块获取数据，使用json模块解析数据，然后查找到封面图的位置，进行下载保存，代码中upID用于设置up主ID，num为爬取的封面数量，测试可完美达成目标。&lt;/p&gt;
+
+&lt;p&gt;如有任何疑问，欢迎微博/bilibili私信，相关信息在about页面。&lt;/p&gt;
+</description>
+        <pubDate>Sun, 17 Sep 2017 20:43:00 +0800</pubDate>
+        <link>https://xinrea.net/2017/09/17/bilibili-python-spider.html</link>
+        <guid isPermaLink="true">https://xinrea.net/2017/09/17/bilibili-python-spider.html</guid>
+        
+        
+        <category>network</category>
+        
+        <category>learn</category>
+        
+        <category>python</category>
         
       </item>
     

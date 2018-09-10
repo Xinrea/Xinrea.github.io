@@ -146,34 +146,35 @@ Author: Ray-Eldath
 
 <h2 id="数据结构">数据结构</h2>
 
-<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span> <span class="n">logger_entry</span> <span class="p">{</span>
-	<span class="n">__u16</span>		<span class="n">len</span><span class="p">;</span>	<span class="cm">/* length of the payload */</span>
-	<span class="n">__u16</span>		<span class="n">__pad</span><span class="p">;</span>	<span class="cm">/* no matter what, we get 2 bytes of padding */</span>
-	<span class="n">__s32</span>		<span class="n">pid</span><span class="p">;</span>	<span class="cm">/* generating process's pid */</span>
-	<span class="n">__s32</span>		<span class="n">tid</span><span class="p">;</span>	<span class="cm">/* generating process's tid */</span>
-	<span class="n">__s32</span>		<span class="n">sec</span><span class="p">;</span>	<span class="cm">/* seconds since Epoch */</span>
-	<span class="n">__s32</span>		<span class="n">nsec</span><span class="p">;</span>	<span class="cm">/* nanoseconds */</span>
-	<span class="kt">char</span>		<span class="n">msg</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>	<span class="cm">/* the entry's payload */</span>
-<span class="p">};</span>
-</code></pre></div></div>
+<pre><code class="language-clike">struct logger_entry {
+	__u16		len;	/* length of the payload */
+	__u16		__pad;	/* no matter what, we get 2 bytes of padding */
+	__s32		pid;	/* generating process's pid */
+	__s32		tid;	/* generating process's tid */
+	__s32		sec;	/* seconds since Epoch */
+	__s32		nsec;	/* nanoseconds */
+	char		msg[0];	/* the entry's payload */
+};
+</code></pre>
 
-<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span> <span class="n">logger_log</span> <span class="p">{</span>
-	<span class="kt">unsigned</span> <span class="kt">char</span> <span class="o">*</span>		<span class="n">buffer</span><span class="p">;</span>	<span class="cm">/* the ring buffer itself */</span>
-	<span class="k">struct</span> <span class="n">miscdevice</span>	<span class="n">misc</span><span class="p">;</span>	<span class="cm">/* misc device representing the log */</span>
-	<span class="n">wait_queue_head_t</span>	<span class="n">wq</span><span class="p">;</span>	<span class="cm">/* wait queue for readers */</span>
-	<span class="k">struct</span> <span class="n">list_head</span>	<span class="n">readers</span><span class="p">;</span> <span class="cm">/* this log's readers */</span>
-	<span class="k">struct</span> <span class="n">mutex</span>		<span class="n">mutex</span><span class="p">;</span>	<span class="cm">/* mutex protecting buffer */</span>
-	<span class="kt">size_t</span>			<span class="n">w_off</span><span class="p">;</span>	<span class="cm">/* current write head offset */</span>
-	<span class="kt">size_t</span>			<span class="n">head</span><span class="p">;</span>	<span class="cm">/* new readers start here */</span>
-	<span class="kt">size_t</span>			<span class="n">size</span><span class="p">;</span>	<span class="cm">/* size of the log */</span>
-<span class="p">};</span>
-</code></pre></div></div>
-<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span> <span class="n">logger_reader</span> <span class="p">{</span>
-	<span class="k">struct</span> <span class="n">logger_log</span> <span class="o">*</span>	<span class="n">log</span><span class="p">;</span>	<span class="cm">/* associated log */</span>
-	<span class="k">struct</span> <span class="n">list_head</span>	<span class="n">list</span><span class="p">;</span>	<span class="cm">/* entry in logger_log's list */</span>
-	<span class="kt">size_t</span>			<span class="n">r_off</span><span class="p">;</span>	<span class="cm">/* current read head offset */</span>
-<span class="p">};</span>
-</code></pre></div></div>
+<pre><code class="language-clike">struct logger_log {
+	unsigned char *		buffer;	/* the ring buffer itself */
+	struct miscdevice	misc;	/* misc device representing the log */
+	wait_queue_head_t	wq;	/* wait queue for readers */
+	struct list_head	readers; /* this log's readers */
+	struct mutex		mutex;	/* mutex protecting buffer */
+	size_t			w_off;	/* current write head offset */
+	size_t			head;	/* new readers start here */
+	size_t			size;	/* size of the log */
+};
+</code></pre>
+
+<pre><code class="language-clike">struct logger_reader {
+	struct logger_log *	log;	/* associated log */
+	struct list_head	list;	/* entry in logger_log's list */
+	size_t			r_off;	/* current read head offset */
+};
+</code></pre>
 <h2 id="详细描述">详细描述</h2>
 
 <h3 id="logger_log">logger_log</h3>
@@ -213,26 +214,26 @@ Author: Ray-Eldath
 
 <h3 id="static-int-__init-logger_initvoid">static int __init logger_init(void);</h3>
 
-<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">static</span> <span class="kt">int</span> <span class="n">__init</span> <span class="nf">logger_init</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
-<span class="p">{</span>
-	<span class="kt">int</span> <span class="n">ret</span><span class="p">;</span>
+<pre><code class="language-clike">static int __init logger_init(void)
+{
+	int ret;
 
-	<span class="n">ret</span> <span class="o">=</span> <span class="n">init_log</span><span class="p">(</span><span class="o">&amp;</span><span class="n">log_main</span><span class="p">);</span>
-	<span class="k">if</span> <span class="p">(</span><span class="n">unlikely</span><span class="p">(</span><span class="n">ret</span><span class="p">))</span>
-		<span class="k">goto</span> <span class="n">out</span><span class="p">;</span>
+	ret = init_log(&amp;log_main);
+	if (unlikely(ret))
+		goto out;
 
-	<span class="n">ret</span> <span class="o">=</span> <span class="n">init_log</span><span class="p">(</span><span class="o">&amp;</span><span class="n">log_events</span><span class="p">);</span>
-	<span class="k">if</span> <span class="p">(</span><span class="n">unlikely</span><span class="p">(</span><span class="n">ret</span><span class="p">))</span>
-		<span class="k">goto</span> <span class="n">out</span><span class="p">;</span>
+	ret = init_log(&amp;log_events);
+	if (unlikely(ret))
+		goto out;
 
-	<span class="n">ret</span> <span class="o">=</span> <span class="n">init_log</span><span class="p">(</span><span class="o">&amp;</span><span class="n">log_radio</span><span class="p">);</span>
-	<span class="k">if</span> <span class="p">(</span><span class="n">unlikely</span><span class="p">(</span><span class="n">ret</span><span class="p">))</span>
-		<span class="k">goto</span> <span class="n">out</span><span class="p">;</span>
+	ret = init_log(&amp;log_radio);
+	if (unlikely(ret))
+		goto out;
 
-<span class="nl">out:</span>
-	<span class="k">return</span> <span class="n">ret</span><span class="p">;</span>
-<span class="p">}</span>
-</code></pre></div></div>
+out:
+	return ret;
+}
+</code></pre>
 
 <ul>
   <li>初始化<code class="highlighter-rouge">log_main</code></li>
@@ -242,23 +243,23 @@ Author: Ray-Eldath
 
 <h3 id="static-int-__init-init_logstruct-logger_log-log">static int __init init_log(struct logger_log *log);</h3>
 
-<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">static</span> <span class="kt">int</span> <span class="n">__init</span> <span class="nf">init_log</span><span class="p">(</span><span class="k">struct</span> <span class="n">logger_log</span> <span class="o">*</span><span class="n">log</span><span class="p">)</span>
-<span class="p">{</span>
-	<span class="kt">int</span> <span class="n">ret</span><span class="p">;</span>
+<pre><code class="language-clike">static int __init init_log(struct logger_log *log)
+{
+	int ret;
 
-	<span class="n">ret</span> <span class="o">=</span> <span class="n">misc_register</span><span class="p">(</span><span class="o">&amp;</span><span class="n">log</span><span class="o">-&gt;</span><span class="n">misc</span><span class="p">);</span>
-	<span class="k">if</span> <span class="p">(</span><span class="n">unlikely</span><span class="p">(</span><span class="n">ret</span><span class="p">))</span> <span class="p">{</span>
-		<span class="n">printk</span><span class="p">(</span><span class="n">KERN_ERR</span> <span class="s">"logger: failed to register misc "</span>
-		       <span class="s">"device for log '%s'!</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">log</span><span class="o">-&gt;</span><span class="n">misc</span><span class="p">.</span><span class="n">name</span><span class="p">);</span>
-		<span class="k">return</span> <span class="n">ret</span><span class="p">;</span>
-	<span class="p">}</span>
+	ret = misc_register(&amp;log-&gt;misc);
+	if (unlikely(ret)) {
+		printk(KERN_ERR "logger: failed to register misc "
+		       "device for log '%s'!\n", log-&gt;misc.name);
+		return ret;
+	}
 
-	<span class="n">printk</span><span class="p">(</span><span class="n">KERN_INFO</span> <span class="s">"logger: created %luK log '%s'</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span>
-	       <span class="p">(</span><span class="kt">unsigned</span> <span class="kt">long</span><span class="p">)</span> <span class="n">log</span><span class="o">-&gt;</span><span class="n">size</span> <span class="o">&gt;&gt;</span> <span class="mi">10</span><span class="p">,</span> <span class="n">log</span><span class="o">-&gt;</span><span class="n">misc</span><span class="p">.</span><span class="n">name</span><span class="p">);</span>
+	printk(KERN_INFO "logger: created %luK log '%s'\n",
+	       (unsigned long) log-&gt;size &gt;&gt; 10, log-&gt;misc.name);
 
-	<span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-<span class="p">}</span>
-</code></pre></div></div>
+	return 0;
+}
+</code></pre>
 
 <p>简单的注册了一下设备<code class="highlighter-rouge">/dev/log/main</code> <code class="highlighter-rouge">/dev/log/event</code> <code class="highlighter-rouge">/dev/log/radio</code>。</p>
 
@@ -266,41 +267,41 @@ Author: Ray-Eldath
 
 <h3 id="static-int-logger_openstruct-inode-inode-struct-file-file">static int logger_open(struct inode *inode, struct file *file);</h3>
 
-<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">static</span> <span class="kt">int</span> <span class="nf">logger_open</span><span class="p">(</span><span class="k">struct</span> <span class="n">inode</span> <span class="o">*</span><span class="n">inode</span><span class="p">,</span> <span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="n">file</span><span class="p">)</span>
-<span class="p">{</span>
-	<span class="k">struct</span> <span class="n">logger_log</span> <span class="o">*</span><span class="n">log</span><span class="p">;</span>
-	<span class="kt">int</span> <span class="n">ret</span><span class="p">;</span>
+<pre><code class="language-clike">static int logger_open(struct inode *inode, struct file *file)
+{
+	struct logger_log *log;
+	int ret;
 
-	<span class="n">ret</span> <span class="o">=</span> <span class="n">nonseekable_open</span><span class="p">(</span><span class="n">inode</span><span class="p">,</span> <span class="n">file</span><span class="p">);</span>
-	<span class="k">if</span> <span class="p">(</span><span class="n">ret</span><span class="p">)</span>
-		<span class="k">return</span> <span class="n">ret</span><span class="p">;</span>
+	ret = nonseekable_open(inode, file);
+	if (ret)
+		return ret;
 
-	<span class="n">log</span> <span class="o">=</span> <span class="n">get_log_from_minor</span><span class="p">(</span><span class="n">MINOR</span><span class="p">(</span><span class="n">inode</span><span class="o">-&gt;</span><span class="n">i_rdev</span><span class="p">));</span>
-	<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">log</span><span class="p">)</span>
-		<span class="k">return</span> <span class="o">-</span><span class="n">ENODEV</span><span class="p">;</span>
+	log = get_log_from_minor(MINOR(inode-&gt;i_rdev));
+	if (!log)
+		return -ENODEV;
 
-	<span class="k">if</span> <span class="p">(</span><span class="n">file</span><span class="o">-&gt;</span><span class="n">f_mode</span> <span class="o">&amp;</span> <span class="n">FMODE_READ</span><span class="p">)</span> <span class="p">{</span>
-		<span class="k">struct</span> <span class="n">logger_reader</span> <span class="o">*</span><span class="n">reader</span><span class="p">;</span>
+	if (file-&gt;f_mode &amp; FMODE_READ) {
+		struct logger_reader *reader;
 
-		<span class="n">reader</span> <span class="o">=</span> <span class="n">kmalloc</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">logger_reader</span><span class="p">),</span> <span class="n">GFP_KERNEL</span><span class="p">);</span>
-		<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">reader</span><span class="p">)</span>
-			<span class="k">return</span> <span class="o">-</span><span class="n">ENOMEM</span><span class="p">;</span>
+		reader = kmalloc(sizeof(struct logger_reader), GFP_KERNEL);
+		if (!reader)
+			return -ENOMEM;
 
-		<span class="n">reader</span><span class="o">-&gt;</span><span class="n">log</span> <span class="o">=</span> <span class="n">log</span><span class="p">;</span>
-		<span class="n">INIT_LIST_HEAD</span><span class="p">(</span><span class="o">&amp;</span><span class="n">reader</span><span class="o">-&gt;</span><span class="n">list</span><span class="p">);</span>
+		reader-&gt;log = log;
+		INIT_LIST_HEAD(&amp;reader-&gt;list);
 
-		<span class="n">mutex_lock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">log</span><span class="o">-&gt;</span><span class="n">mutex</span><span class="p">);</span>
-		<span class="n">reader</span><span class="o">-&gt;</span><span class="n">r_off</span> <span class="o">=</span> <span class="n">log</span><span class="o">-&gt;</span><span class="n">head</span><span class="p">;</span>
-		<span class="n">list_add_tail</span><span class="p">(</span><span class="o">&amp;</span><span class="n">reader</span><span class="o">-&gt;</span><span class="n">list</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">log</span><span class="o">-&gt;</span><span class="n">readers</span><span class="p">);</span>
-		<span class="n">mutex_unlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">log</span><span class="o">-&gt;</span><span class="n">mutex</span><span class="p">);</span>
+		mutex_lock(&amp;log-&gt;mutex);
+		reader-&gt;r_off = log-&gt;head;
+		list_add_tail(&amp;reader-&gt;list, &amp;log-&gt;readers);
+		mutex_unlock(&amp;log-&gt;mutex);
 
-		<span class="n">file</span><span class="o">-&gt;</span><span class="n">private_data</span> <span class="o">=</span> <span class="n">reader</span><span class="p">;</span>
-	<span class="p">}</span> <span class="k">else</span>
-		<span class="n">file</span><span class="o">-&gt;</span><span class="n">private_data</span> <span class="o">=</span> <span class="n">log</span><span class="p">;</span>
+		file-&gt;private_data = reader;
+	} else
+		file-&gt;private_data = log;
 
-	<span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-<span class="p">}</span>
-</code></pre></div></div>
+	return 0;
+}
+</code></pre>
 
 <p>设备在open时，如果是读设备，则<code class="highlighter-rouge">file-&gt;private_data = reader</code>，否则<code class="highlighter-rouge">file-&gt;private_data = log</code>。</p>
 
@@ -308,65 +309,65 @@ Author: Ray-Eldath
 
 <h3 id="static-ssize_t-logger_readstruct-file-file-char-__user-buf-size_t-count-loff_t-pos">static ssize_t logger_read(struct file *file, char __user *buf, size_t count, loff_t *pos);</h3>
 
-<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">static</span> <span class="kt">ssize_t</span> <span class="nf">logger_read</span><span class="p">(</span><span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="n">file</span><span class="p">,</span> <span class="kt">char</span> <span class="n">__user</span> <span class="o">*</span><span class="n">buf</span><span class="p">,</span>
-			   <span class="kt">size_t</span> <span class="n">count</span><span class="p">,</span> <span class="n">loff_t</span> <span class="o">*</span><span class="n">pos</span><span class="p">)</span>
-<span class="p">{</span>
-	<span class="k">struct</span> <span class="n">logger_reader</span> <span class="o">*</span><span class="n">reader</span> <span class="o">=</span> <span class="n">file</span><span class="o">-&gt;</span><span class="n">private_data</span><span class="p">;</span>
-	<span class="k">struct</span> <span class="n">logger_log</span> <span class="o">*</span><span class="n">log</span> <span class="o">=</span> <span class="n">reader</span><span class="o">-&gt;</span><span class="n">log</span><span class="p">;</span>
-	<span class="kt">ssize_t</span> <span class="n">ret</span><span class="p">;</span>
-	<span class="n">DEFINE_WAIT</span><span class="p">(</span><span class="n">wait</span><span class="p">);</span>
+<pre><code class="language-clike">static ssize_t logger_read(struct file *file, char __user *buf,
+			   size_t count, loff_t *pos)
+{
+	struct logger_reader *reader = file-&gt;private_data;
+	struct logger_log *log = reader-&gt;log;
+	ssize_t ret;
+	DEFINE_WAIT(wait);
 
-<span class="nl">start:</span>
-	<span class="k">while</span> <span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
-		<span class="n">prepare_to_wait</span><span class="p">(</span><span class="o">&amp;</span><span class="n">log</span><span class="o">-&gt;</span><span class="n">wq</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">wait</span><span class="p">,</span> <span class="n">TASK_INTERRUPTIBLE</span><span class="p">);</span>
+start:
+	while (1) {
+		prepare_to_wait(&amp;log-&gt;wq, &amp;wait, TASK_INTERRUPTIBLE);
 
-		<span class="n">mutex_lock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">log</span><span class="o">-&gt;</span><span class="n">mutex</span><span class="p">);</span>
-		<span class="n">ret</span> <span class="o">=</span> <span class="p">(</span><span class="n">log</span><span class="o">-&gt;</span><span class="n">w_off</span> <span class="o">==</span> <span class="n">reader</span><span class="o">-&gt;</span><span class="n">r_off</span><span class="p">);</span>
-		<span class="n">mutex_unlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">log</span><span class="o">-&gt;</span><span class="n">mutex</span><span class="p">);</span>
-		<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">ret</span><span class="p">)</span>
-			<span class="k">break</span><span class="p">;</span>
+		mutex_lock(&amp;log-&gt;mutex);
+		ret = (log-&gt;w_off == reader-&gt;r_off);
+		mutex_unlock(&amp;log-&gt;mutex);
+		if (!ret)
+			break;
 
-		<span class="k">if</span> <span class="p">(</span><span class="n">file</span><span class="o">-&gt;</span><span class="n">f_flags</span> <span class="o">&amp;</span> <span class="n">O_NONBLOCK</span><span class="p">)</span> <span class="p">{</span>
-			<span class="n">ret</span> <span class="o">=</span> <span class="o">-</span><span class="n">EAGAIN</span><span class="p">;</span>
-			<span class="k">break</span><span class="p">;</span>
-		<span class="p">}</span>
+		if (file-&gt;f_flags &amp; O_NONBLOCK) {
+			ret = -EAGAIN;
+			break;
+		}
 
-		<span class="k">if</span> <span class="p">(</span><span class="n">signal_pending</span><span class="p">(</span><span class="n">current</span><span class="p">))</span> <span class="p">{</span>
-			<span class="n">ret</span> <span class="o">=</span> <span class="o">-</span><span class="n">EINTR</span><span class="p">;</span>
-			<span class="k">break</span><span class="p">;</span>
-		<span class="p">}</span>
+		if (signal_pending(current)) {
+			ret = -EINTR;
+			break;
+		}
 
-		<span class="n">schedule</span><span class="p">();</span>
-	<span class="p">}</span>
+		schedule();
+	}
 
-	<span class="n">finish_wait</span><span class="p">(</span><span class="o">&amp;</span><span class="n">log</span><span class="o">-&gt;</span><span class="n">wq</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">wait</span><span class="p">);</span>
-	<span class="k">if</span> <span class="p">(</span><span class="n">ret</span><span class="p">)</span>
-		<span class="k">return</span> <span class="n">ret</span><span class="p">;</span>
+	finish_wait(&amp;log-&gt;wq, &amp;wait);
+	if (ret)
+		return ret;
 
-	<span class="n">mutex_lock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">log</span><span class="o">-&gt;</span><span class="n">mutex</span><span class="p">);</span>
+	mutex_lock(&amp;log-&gt;mutex);
 
-	<span class="cm">/* is there still something to read or did we race? */</span>
-	<span class="k">if</span> <span class="p">(</span><span class="n">unlikely</span><span class="p">(</span><span class="n">log</span><span class="o">-&gt;</span><span class="n">w_off</span> <span class="o">==</span> <span class="n">reader</span><span class="o">-&gt;</span><span class="n">r_off</span><span class="p">))</span> <span class="p">{</span>
-		<span class="n">mutex_unlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">log</span><span class="o">-&gt;</span><span class="n">mutex</span><span class="p">);</span>
-		<span class="k">goto</span> <span class="n">start</span><span class="p">;</span>
-	<span class="p">}</span>
+	/* is there still something to read or did we race? */
+	if (unlikely(log-&gt;w_off == reader-&gt;r_off)) {
+		mutex_unlock(&amp;log-&gt;mutex);
+		goto start;
+	}
 
-	<span class="cm">/* get the size of the next entry */</span>
-	<span class="n">ret</span> <span class="o">=</span> <span class="n">get_entry_len</span><span class="p">(</span><span class="n">log</span><span class="p">,</span> <span class="n">reader</span><span class="o">-&gt;</span><span class="n">r_off</span><span class="p">);</span>
-	<span class="k">if</span> <span class="p">(</span><span class="n">count</span> <span class="o">&lt;</span> <span class="n">ret</span><span class="p">)</span> <span class="p">{</span>
-		<span class="n">ret</span> <span class="o">=</span> <span class="o">-</span><span class="n">EINVAL</span><span class="p">;</span>
-		<span class="k">goto</span> <span class="n">out</span><span class="p">;</span>
-	<span class="p">}</span>
+	/* get the size of the next entry */
+	ret = get_entry_len(log, reader-&gt;r_off);
+	if (count &lt; ret) {
+		ret = -EINVAL;
+		goto out;
+	}
 
-	<span class="cm">/* get exactly one entry from the log */</span>
-	<span class="n">ret</span> <span class="o">=</span> <span class="n">do_read_log_to_user</span><span class="p">(</span><span class="n">log</span><span class="p">,</span> <span class="n">reader</span><span class="p">,</span> <span class="n">buf</span><span class="p">,</span> <span class="n">ret</span><span class="p">);</span>
+	/* get exactly one entry from the log */
+	ret = do_read_log_to_user(log, reader, buf, ret);
 
-<span class="nl">out:</span>
-	<span class="n">mutex_unlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">log</span><span class="o">-&gt;</span><span class="n">mutex</span><span class="p">);</span>
+out:
+	mutex_unlock(&amp;log-&gt;mutex);
 
-	<span class="k">return</span> <span class="n">ret</span><span class="p">;</span>
-<span class="p">}</span>
-</code></pre></div></div>
+	return ret;
+}
+</code></pre>
 
 <p>取出<code class="highlighter-rouge">file-&gt;private_data</code>中的<code class="highlighter-rouge">reader</code>，获取相关信息。在while循环中等待日志可读(log-&gt;w_off == reader-&gt;r_off，相等时不可读)，如果可读则跳出循环，进行读操作。</p>
 
@@ -380,66 +381,66 @@ Author: Ray-Eldath
 
 <h3 id="ssize_t-logger_aio_writestruct-kiocb-iocb-const-struct-iovec-iov-unsigned-long-nr_segs-loff_t-ppos">ssize_t logger_aio_write(struct kiocb *iocb, const struct iovec *iov, unsigned long nr_segs, loff_t ppos);</h3>
 
-<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">ssize_t</span> <span class="nf">logger_aio_write</span><span class="p">(</span><span class="k">struct</span> <span class="n">kiocb</span> <span class="o">*</span><span class="n">iocb</span><span class="p">,</span> <span class="k">const</span> <span class="k">struct</span> <span class="n">iovec</span> <span class="o">*</span><span class="n">iov</span><span class="p">,</span>
-			 <span class="kt">unsigned</span> <span class="kt">long</span> <span class="n">nr_segs</span><span class="p">,</span> <span class="n">loff_t</span> <span class="n">ppos</span><span class="p">)</span>
-<span class="p">{</span>
-	<span class="k">struct</span> <span class="n">logger_log</span> <span class="o">*</span><span class="n">log</span> <span class="o">=</span> <span class="n">file_get_log</span><span class="p">(</span><span class="n">iocb</span><span class="o">-&gt;</span><span class="n">ki_filp</span><span class="p">);</span>
-	<span class="kt">size_t</span> <span class="n">orig</span> <span class="o">=</span> <span class="n">log</span><span class="o">-&gt;</span><span class="n">w_off</span><span class="p">;</span>
-	<span class="k">struct</span> <span class="n">logger_entry</span> <span class="n">header</span><span class="p">;</span>
-	<span class="k">struct</span> <span class="n">timespec</span> <span class="n">now</span><span class="p">;</span>
-	<span class="kt">ssize_t</span> <span class="n">ret</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<pre><code class="language-clike">ssize_t logger_aio_write(struct kiocb *iocb, const struct iovec *iov,
+			 unsigned long nr_segs, loff_t ppos)
+{
+	struct logger_log *log = file_get_log(iocb-&gt;ki_filp);
+	size_t orig = log-&gt;w_off;
+	struct logger_entry header;
+	struct timespec now;
+	ssize_t ret = 0;
 
-	<span class="n">now</span> <span class="o">=</span> <span class="n">current_kernel_time</span><span class="p">();</span>
+	now = current_kernel_time();
 
-	<span class="n">header</span><span class="p">.</span><span class="n">pid</span> <span class="o">=</span> <span class="n">current</span><span class="o">-&gt;</span><span class="n">tgid</span><span class="p">;</span>
-	<span class="n">header</span><span class="p">.</span><span class="n">tid</span> <span class="o">=</span> <span class="n">current</span><span class="o">-&gt;</span><span class="n">pid</span><span class="p">;</span>
-	<span class="n">header</span><span class="p">.</span><span class="n">sec</span> <span class="o">=</span> <span class="n">now</span><span class="p">.</span><span class="n">tv_sec</span><span class="p">;</span>
-	<span class="n">header</span><span class="p">.</span><span class="n">nsec</span> <span class="o">=</span> <span class="n">now</span><span class="p">.</span><span class="n">tv_nsec</span><span class="p">;</span>
-	<span class="n">header</span><span class="p">.</span><span class="n">len</span> <span class="o">=</span> <span class="n">min_t</span><span class="p">(</span><span class="kt">size_t</span><span class="p">,</span> <span class="n">iocb</span><span class="o">-&gt;</span><span class="n">ki_left</span><span class="p">,</span> <span class="n">LOGGER_ENTRY_MAX_PAYLOAD</span><span class="p">);</span>
+	header.pid = current-&gt;tgid;
+	header.tid = current-&gt;pid;
+	header.sec = now.tv_sec;
+	header.nsec = now.tv_nsec;
+	header.len = min_t(size_t, iocb-&gt;ki_left, LOGGER_ENTRY_MAX_PAYLOAD);
 
-	<span class="cm">/* null writes succeed, return zero */</span>
-	<span class="k">if</span> <span class="p">(</span><span class="n">unlikely</span><span class="p">(</span><span class="o">!</span><span class="n">header</span><span class="p">.</span><span class="n">len</span><span class="p">))</span>
-		<span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+	/* null writes succeed, return zero */
+	if (unlikely(!header.len))
+		return 0;
 
-	<span class="n">mutex_lock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">log</span><span class="o">-&gt;</span><span class="n">mutex</span><span class="p">);</span>
+	mutex_lock(&amp;log-&gt;mutex);
 
-	<span class="cm">/*
+	/*
 	 * Fix up any readers, pulling them forward to the first readable
 	 * entry after (what will be) the new write offset. We do this now
 	 * because if we partially fail, we can end up with clobbered log
 	 * entries that encroach on readable buffer.
-	 */</span>
-	<span class="n">fix_up_readers</span><span class="p">(</span><span class="n">log</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">logger_entry</span><span class="p">)</span> <span class="o">+</span> <span class="n">header</span><span class="p">.</span><span class="n">len</span><span class="p">);</span>
+	 */
+	fix_up_readers(log, sizeof(struct logger_entry) + header.len);
 
-	<span class="n">do_write_log</span><span class="p">(</span><span class="n">log</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">header</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">logger_entry</span><span class="p">));</span>
+	do_write_log(log, &amp;header, sizeof(struct logger_entry));
 
-	<span class="k">while</span> <span class="p">(</span><span class="n">nr_segs</span><span class="o">--</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-		<span class="kt">size_t</span> <span class="n">len</span><span class="p">;</span>
-		<span class="kt">ssize_t</span> <span class="n">nr</span><span class="p">;</span>
+	while (nr_segs-- &gt; 0) {
+		size_t len;
+		ssize_t nr;
 
-		<span class="cm">/* figure out how much of this vector we can keep */</span>
-		<span class="n">len</span> <span class="o">=</span> <span class="n">min_t</span><span class="p">(</span><span class="kt">size_t</span><span class="p">,</span> <span class="n">iov</span><span class="o">-&gt;</span><span class="n">iov_len</span><span class="p">,</span> <span class="n">header</span><span class="p">.</span><span class="n">len</span> <span class="o">-</span> <span class="n">ret</span><span class="p">);</span>
+		/* figure out how much of this vector we can keep */
+		len = min_t(size_t, iov-&gt;iov_len, header.len - ret);
 
-		<span class="cm">/* write out this segment's payload */</span>
-		<span class="n">nr</span> <span class="o">=</span> <span class="n">do_write_log_from_user</span><span class="p">(</span><span class="n">log</span><span class="p">,</span> <span class="n">iov</span><span class="o">-&gt;</span><span class="n">iov_base</span><span class="p">,</span> <span class="n">len</span><span class="p">);</span>
-		<span class="k">if</span> <span class="p">(</span><span class="n">unlikely</span><span class="p">(</span><span class="n">nr</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">))</span> <span class="p">{</span>
-			<span class="n">log</span><span class="o">-&gt;</span><span class="n">w_off</span> <span class="o">=</span> <span class="n">orig</span><span class="p">;</span>
-			<span class="n">mutex_unlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">log</span><span class="o">-&gt;</span><span class="n">mutex</span><span class="p">);</span>
-			<span class="k">return</span> <span class="n">nr</span><span class="p">;</span>
-		<span class="p">}</span>
+		/* write out this segment's payload */
+		nr = do_write_log_from_user(log, iov-&gt;iov_base, len);
+		if (unlikely(nr &lt; 0)) {
+			log-&gt;w_off = orig;
+			mutex_unlock(&amp;log-&gt;mutex);
+			return nr;
+		}
 
-		<span class="n">iov</span><span class="o">++</span><span class="p">;</span>
-		<span class="n">ret</span> <span class="o">+=</span> <span class="n">nr</span><span class="p">;</span>
-	<span class="p">}</span>
+		iov++;
+		ret += nr;
+	}
 
-	<span class="n">mutex_unlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">log</span><span class="o">-&gt;</span><span class="n">mutex</span><span class="p">);</span>
+	mutex_unlock(&amp;log-&gt;mutex);
 
-	<span class="cm">/* wake up any blocked readers */</span>
-	<span class="n">wake_up_interruptible</span><span class="p">(</span><span class="o">&amp;</span><span class="n">log</span><span class="o">-&gt;</span><span class="n">wq</span><span class="p">);</span>
+	/* wake up any blocked readers */
+	wake_up_interruptible(&amp;log-&gt;wq);
 
-	<span class="k">return</span> <span class="n">ret</span><span class="p">;</span>
-<span class="p">}</span>
-</code></pre></div></div>
+	return ret;
+}
+</code></pre>
 
 <ul>
   <li><code class="highlighter-rouge">iocb</code>-io上下文</li>

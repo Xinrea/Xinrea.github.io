@@ -140,7 +140,7 @@ Author: Ray-Eldath
 
 <p>函数原型</p>
 
-<figure class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span class="n">pid_t</span> <span class="n">fork</span><span class="p">(</span><span class="kt">void</span><span class="p">);</span></code></pre></figure>
+<figure class="highlight"><pre><code class="language-clike" data-lang="clike">pid_t fork(void);</code></pre></figure>
 
 <blockquote>
   <p>pid_t为宏定义的int类型，若需使用，需<code class="highlighter-rouge">include sys/types.h</code>文件</p>
@@ -156,12 +156,12 @@ Author: Ray-Eldath
 
 <h3 id="简单使用情景">简单使用情景</h3>
 
-<figure class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="n">fork</span><span class="p">()){</span>
-	<span class="n">statement1</span><span class="p">;</span>
-<span class="p">}</span>
-<span class="k">else</span><span class="p">{</span>
-	<span class="n">statement2</span><span class="p">;</span>
-<span class="p">}</span></code></pre></figure>
+<figure class="highlight"><pre><code class="language-clike" data-lang="clike">if(!fork()){
+	statement1;
+}
+else{
+	statement2;
+}</code></pre></figure>
 
 <p>由返回值的情况可以知道，父进程中执行<code class="highlighter-rouge">statement2</code>，子进程中执行<code class="highlighter-rouge">statement1</code>，两段代码可以“看作”在fork()之后，同时开始运行，但是实际顺序无法确定，请不要在竞争情景下使用。注意，fork()函数新建了进程来完成分支。</p>
 

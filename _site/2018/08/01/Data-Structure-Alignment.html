@@ -140,23 +140,23 @@ Author: Ray-Eldath
 
 <h3 id="e1-默认">E1 默认</h3>
 
-<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span> <span class="n">test</span> <span class="p">{</span>
-        <span class="kt">char</span> <span class="n">a</span><span class="p">;</span>
-        <span class="kt">int</span> <span class="n">b</span><span class="p">;</span>
-<span class="p">};</span>
-<span class="n">test</span> <span class="n">t1</span><span class="p">;</span>
-</code></pre></div></div>
+<pre><code class="language-clike">struct test {
+        char a;
+        int b;
+};
+test t1;
+</code></pre>
 
 <p><code class="highlighter-rouge">sizeof(t1) = 8</code></p>
 
 <h3 id="e2-__attribute__packed-alignedx">E2 __attribute__((packed, aligned(X)))</h3>
 
-<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span> <span class="n">__attribute__</span><span class="p">((</span><span class="n">packed</span><span class="p">,</span><span class="n">aligned</span><span class="p">(</span><span class="mi">1</span><span class="p">)))</span> <span class="n">test2</span><span class="p">{</span>
-        <span class="kt">char</span> <span class="n">a</span><span class="p">;</span>
-        <span class="kt">int</span> <span class="n">b</span><span class="p">;</span>
-<span class="p">};</span>
-<span class="n">test2</span> <span class="n">t2</span><span class="p">;</span>
-</code></pre></div></div>
+<pre><code class="language-clike">struct __attribute__((packed,aligned(1))) test2{
+        char a;
+        int b;
+};
+test2 t2;
+</code></pre>
 
 <p><code class="highlighter-rouge">sizeof(t2) = 5</code></p>
 
@@ -168,14 +168,14 @@ Author: Ray-Eldath
 
 <h3 id="e3-pragma-packpushx">E3 #pragma pack(push,X)</h3>
 
-<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#pragma pack(push,1)
-</span><span class="k">struct</span> <span class="n">test3</span> <span class="p">{</span>
-        <span class="kt">char</span> <span class="n">a</span><span class="p">;</span>
-        <span class="kt">int</span> <span class="n">b</span><span class="p">;</span>
-<span class="p">};</span>
-<span class="cp">#pragma pack(pop)
-</span><span class="n">test3</span> <span class="n">t3</span><span class="p">;</span>
-</code></pre></div></div>
+<pre><code class="language-clike">#pragma pack(push,1)
+struct test3 {
+        char a;
+        int b;
+};
+#pragma pack(pop)
+test3 t3;
+</code></pre>
 
 <p><code class="highlighter-rouge">sizeof(t3) = 5</code></p>
 
@@ -185,12 +185,12 @@ Author: Ray-Eldath
 
 <h3 id="第一组">第一组</h3>
 
-<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span> <span class="n">st</span> <span class="p">{</span>
-  <span class="kt">char</span> <span class="n">a</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">b</span><span class="p">;</span>
-  <span class="kt">char</span> <span class="n">c</span><span class="p">;</span>
-<span class="p">};</span>
-</code></pre></div></div>
+<pre><code class="language-clike">struct st {
+  char a;
+  int b;
+  char c;
+};
+</code></pre>
 
 <table>
   <thead>
@@ -222,12 +222,12 @@ Author: Ray-Eldath
 
 <h3 id="第二组">第二组</h3>
 
-<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span> <span class="n">st</span> <span class="p">{</span>
-  <span class="kt">char</span> <span class="n">a</span><span class="p">;</span>
-  <span class="kt">double</span> <span class="n">b</span><span class="p">;</span>
-  <span class="kt">char</span> <span class="n">c</span><span class="p">;</span>
-<span class="p">};</span>
-</code></pre></div></div>
+<pre><code class="language-clike">struct st {
+  char a;
+  double b;
+  char c;
+};
+</code></pre>
 
 <table>
   <thead>

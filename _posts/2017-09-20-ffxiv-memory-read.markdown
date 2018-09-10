@@ -9,7 +9,7 @@ tags: windows c++ memory
 
 但是ffxiv作为一款使用diretX开发的游戏，其游戏窗口屏蔽了在外的按键模拟信息，简单的`keybd_event()`和`mouse_event()`并无法实现对游戏内的模拟操作，在网上查询一系列资料后，发现只要能够获取窗口的句柄，便能够轻松地使用`PostMessage()`方式模拟按键信息，实现代码如下：
 
-{% highlight c %}
+{% highlight clike %}
 int main(int argc, char const *argv[])
 {
 	HWND hwnd = FindWindow(0, L"最终幻想XIV");
@@ -29,7 +29,7 @@ int main(int argc, char const *argv[])
 
 但在不经意中了解到，获得窗口句柄，然后使用`GetWindowThreadProcessID()`即可获得窗口对应的进程ID，再用`OpenProcess()`甚至可以获得进程权限，进行对其内存的读写。如下：
 
-{% highlight c %}
+{% highlight clike %}
 int main(int argc, char const *argv[])
 {
 	HWND hwnd = FindWindow(0, L"最终幻想XIV");
@@ -56,7 +56,7 @@ int main(int argc, char const *argv[])
 
 而确定基址，便是确定`ffxiv_dx11.exe`的入口地址，在游戏进程下，会有多个模块，而模块入口地址的确定有多种方法，在这里我提供一种方法，在现情境下，我们只需找到`ffxiv_dx11.exe`的入口地址。
 
-{% highlight c %}
+{% highlight clike %}
 #include <Tlhelp32.h>
 
 DWORD dwGetModuleBaseAddress(DWORD dwProcessIdentifier, TCHAR *lpszModuleName)

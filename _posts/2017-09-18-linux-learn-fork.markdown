@@ -11,7 +11,7 @@ tags: linux learn
 
 函数原型
 
-{% highlight cpp %}
+{% highlight clike %}
 pid_t fork(void);
 {% endhighlight %}
 
@@ -25,7 +25,7 @@ pid_t fork(void);
 
 ### 简单使用情景 ###
 
-{% highlight cpp %}
+{% highlight clike %}
 if(!fork()){
 	statement1;
 }

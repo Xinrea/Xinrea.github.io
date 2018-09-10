@@ -138,21 +138,21 @@ Author: Ray-Eldath
 
 <p>类中所有成员均设为静态（static），例如：</p>
 
-<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Singleton</span> <span class="p">{</span>
- <span class="k">private</span><span class="o">:</span>
-  <span class="k">static</span> <span class="kt">int</span> <span class="n">data1</span><span class="p">;</span> <span class="c1">// 类内声明</span>
-  <span class="k">static</span> <span class="kt">int</span> <span class="n">data2</span><span class="p">;</span>
- <span class="k">public</span><span class="o">:</span>
-  <span class="k">static</span> <span class="kt">int</span> <span class="n">getData1</span><span class="p">(){</span>
-    <span class="k">return</span> <span class="n">data1</span><span class="p">;</span>
-  <span class="p">}</span>
-  <span class="k">static</span> <span class="kt">int</span> <span class="n">getData2</span><span class="p">(){</span>
-    <span class="k">return</span> <span class="n">data2</span><span class="p">;</span>
-  <span class="p">}</span>
-<span class="p">};</span>
-<span class="kt">int</span> <span class="n">Singleton</span><span class="o">::</span><span class="n">data1</span><span class="p">;</span> <span class="c1">// 类外定义</span>
-<span class="kt">int</span> <span class="n">Singleton</span><span class="o">::</span><span class="n">data2</span><span class="p">;</span>
-</code></pre></div></div>
+<pre><code class="language-clike">class Singleton {
+ private:
+  static int data1; // 类内声明
+  static int data2;
+ public:
+  static int getData1(){
+    return data1;
+  }
+  static int getData2(){
+    return data2;
+  }
+};
+int Singleton::data1; // 类外定义
+int Singleton::data2;
+</code></pre>
 
 <p>当然，这样声明的话，所有的成员均只会存在一份，实现了单例模式的<code class="highlighter-rouge">基本要求</code>，这种方法只是给全局变量及方法加上了一个类域而已。</p>
 
@@ -168,25 +168,25 @@ Author: Ray-Eldath
 
 <p>单例实例作为静态成员变量，类内声明类外定义，在静态变量初始化过程中生成单例，例如：</p>
 
-<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Singleton</span> <span class="p">{</span>
- <span class="k">private</span><span class="o">:</span>
-  <span class="k">static</span> <span class="n">Singleton</span> <span class="n">instance</span><span class="p">;</span>
-  <span class="n">Singleton</span><span class="p">(){</span>
-  <span class="p">}</span>
- <span class="k">public</span><span class="o">:</span>
-  <span class="k">static</span> <span class="n">Singleton</span><span class="o">&amp;</span> <span class="n">getInstance</span><span class="p">(){</span>
-    <span class="k">return</span> <span class="n">instance</span><span class="p">;</span>
-  <span class="p">}</span>
-<span class="p">};</span>
-<span class="n">Singleton</span> <span class="n">Singleton</span><span class="o">::</span><span class="n">instance</span><span class="p">;</span>
-</code></pre></div></div>
+<pre><code class="language-clike">class Singleton {
+ private:
+  static Singleton instance;
+  Singleton(){
+  }
+ public:
+  static Singleton&amp; getInstance(){
+    return instance;
+  }
+};
+Singleton Singleton::instance;
+</code></pre>
 
 <p>这种方式仍然存在初始化顺序的问题，由于单例在静态变量初始化过程中完成创建，多个单例类在此期间的初始化顺序时难以控制的，若它们之间有着依赖关系，在构造函数中用到了其他单例对象，则可能导致错误。</p>
 
 <p>在使用时，应注意用引用来获得实例：</p>
 
-<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">Singleton</span><span class="o">&amp;</span> <span class="n">ins</span> <span class="o">=</span> <span class="n">Singleton</span><span class="o">::</span><span class="n">getInstance</span><span class="p">();</span>
-</code></pre></div></div>
+<pre><code class="language-clike">Singleton&amp; ins = Singleton::getInstance();
+</code></pre>
 
 <p>否则会导致一次构造，多次解析。</p>
 
@@ -194,23 +194,23 @@ Author: Ray-Eldath
 
 <p>单例实例只在第一次使用时进行初始化。例如：</p>
 
-<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Singleton</span> <span class="p">{</span>
- <span class="k">private</span><span class="o">:</span>
-  <span class="k">static</span> <span class="n">Singleton</span><span class="o">*</span> <span class="n">instance</span><span class="p">;</span>
-  <span class="n">Singleton</span><span class="p">(){</span>
-  <span class="p">}</span>
-  <span class="o">~</span><span class="n">Singleton</span><span class="p">(){</span>
-  <span class="p">}</span>
- <span class="k">public</span><span class="o">:</span>
-  <span class="k">static</span> <span class="n">Singleton</span><span class="o">*</span> <span class="n">getInstance</span><span class="p">(){</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">instance</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
-      <span class="n">instance</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Singleton</span><span class="p">();</span>
-    <span class="p">}</span>
-    <span class="k">return</span> <span class="n">instance</span><span class="p">;</span>
-  <span class="p">}</span>
-<span class="p">};</span>
-<span class="n">Singleton</span><span class="o">*</span> <span class="n">Singleton</span><span class="o">::</span><span class="n">instance</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
-</code></pre></div></div>
+<pre><code class="language-clike">class Singleton {
+ private:
+  static Singleton* instance;
+  Singleton(){
+  }
+  ~Singleton(){
+  }
+ public:
+  static Singleton* getInstance(){
+    if (instance == NULL) {
+      instance = new Singleton();
+    }
+    return instance;
+  }
+};
+Singleton* Singleton::instance = NULL;
+</code></pre>
 
 <p>缺点如下：</p>
 
@@ -225,17 +225,17 @@ Author: Ray-Eldath
 
 <p>使用局部静态变量，当进入<code class="highlighter-rouge">getInstance()</code>方法中时，局部变量初始化。例如：</p>
 
-<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Singleton</span> <span class="p">{</span>
- <span class="k">private</span><span class="o">:</span>
-  <span class="n">Singleton</span><span class="p">(){</span>
-  <span class="p">}</span>
- <span class="k">public</span><span class="o">:</span>
-  <span class="k">static</span> <span class="n">Singleton</span><span class="o">&amp;</span> <span class="n">getInstance</span><span class="p">(){</span>
-    <span class="k">static</span> <span class="n">Singleton</span> <span class="n">instance</span><span class="p">;</span>
-    <span class="k">return</span> <span class="n">instance</span><span class="p">;</span>
-  <span class="p">}</span>
-<span class="p">};</span>
-</code></pre></div></div>
+<pre><code class="language-clike">class Singleton {
+ private:
+  Singleton(){
+  }
+ public:
+  static Singleton&amp; getInstance(){
+    static Singleton instance;
+    return instance;
+  }
+};
+</code></pre>
 
 <p>缺点：</p>
 
@@ -249,25 +249,25 @@ Author: Ray-Eldath
 
 <p>boost的实现方式：综合局部静态变量和类静态全局变量，使用代理类的静态全局变量的构造函数，来调用<code class="highlighter-rouge">getInstance()</code>生成局部静态变量，即在静态变量/全局变量初始化的过程中，完成了单例类的实例化。例如：</p>
 
-<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Singleton</span> <span class="p">{</span>
- <span class="k">private</span><span class="o">:</span>
-  <span class="n">Singleton</span><span class="p">(){</span>
-  <span class="p">}</span>
- <span class="k">protected</span><span class="o">:</span>
-  <span class="k">class</span> <span class="nc">Proxy</span> <span class="p">{</span>
-    <span class="n">Proxy</span><span class="p">(){</span>
-      <span class="n">Singleton</span><span class="o">::</span><span class="n">getInstance</span><span class="p">();</span>
-    <span class="p">}</span>
-  <span class="p">};</span>
-  <span class="k">static</span> <span class="n">Proxy</span> <span class="n">proxy</span><span class="p">;</span>
- <span class="k">public</span><span class="o">:</span>
-  <span class="k">static</span> <span class="n">Singleton</span><span class="o">&amp;</span> <span class="n">getInstance</span><span class="p">(){</span>
-    <span class="k">static</span> <span class="n">Singleton</span> <span class="n">instance</span><span class="p">;</span>
-    <span class="k">return</span> <span class="n">instance</span><span class="p">;</span>
-  <span class="p">}</span>
-<span class="p">};</span>
-<span class="n">Singleton</span><span class="o">::</span><span class="n">Proxy</span> <span class="n">Singleton</span><span class="o">::</span><span class="n">proxy</span><span class="p">;</span>
-</code></pre></div></div>
+<pre><code class="language-clike">class Singleton {
+ private:
+  Singleton(){
+  }
+ protected:
+  class Proxy {
+    Proxy(){
+      Singleton::getInstance();
+    }
+  };
+  static Proxy proxy;
+ public:
+  static Singleton&amp; getInstance(){
+    static Singleton instance;
+    return instance;
+  }
+};
+Singleton::Proxy Singleton::proxy;
+</code></pre>
 
     </article>
 

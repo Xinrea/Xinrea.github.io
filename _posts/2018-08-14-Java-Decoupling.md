@@ -10,7 +10,7 @@ tags: java decouple
 
 对于与对象状态无关的方法，可以直接将该方法本地化，解除耦合，例如：
 
-```cpp
+```clike
 class A {
   B b;
 ...
@@ -29,7 +29,7 @@ class B {
 
 可见`B.add()`方法只是完成了简单单一的功能，与类B的对象状态无关，因此可以将其本地化，直接代替原来的调用，以达到解耦的目的。解耦后如下所示:
 
-```cpp
+```clike
 class A {
 ...
   aMethod() {
@@ -42,7 +42,7 @@ class A {
 
 调用位置在代码段末尾，而且改调用与自身状态无关，例如：
 
-```cpp
+```clike
 class A {
   B b;
   aMethod(){
@@ -68,7 +68,7 @@ class C{
 
 由于`B.inc()`涉及到B的状态`int m`，无法直接本地化到A中，但是该方法与A的状态无关，因此可以查找使用了`aMethod`的地方，例如类C中的`cMethod()`方法中调用了`aMethod()`，我们可以将`b.inc()`提到`aMethod()`方法外，例如：
 
-```cpp
+```clike
 class A {
   aMethod(){
     dosomething();

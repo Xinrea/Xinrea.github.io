@@ -138,76 +138,76 @@ Author: Ray-Eldath
 
 <p>对于与对象状态无关的方法，可以直接将该方法本地化，解除耦合，例如：</p>
 
-<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">A</span> <span class="p">{</span>
-  <span class="n">B</span> <span class="n">b</span><span class="p">;</span>
-<span class="p">...</span>
-  <span class="n">aMethod</span><span class="p">()</span> <span class="p">{</span>
-    <span class="k">return</span> <span class="n">b</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">);</span>  
-  <span class="p">}</span>
-<span class="p">}</span>
+<pre><code class="language-clike">class A {
+  B b;
+...
+  aMethod() {
+    return b.add(1,2);  
+  }
+}
 
-<span class="k">class</span> <span class="nc">B</span> <span class="p">{</span>
-<span class="p">...</span>
-  <span class="n">add</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">)</span> <span class="p">{</span>
-    <span class="k">return</span> <span class="n">a</span><span class="o">+</span><span class="n">b</span><span class="p">;</span> 
-  <span class="p">}</span>
-<span class="p">}</span>
-</code></pre></div></div>
+class B {
+...
+  add(a,b) {
+    return a+b; 
+  }
+}
+</code></pre>
 
 <p>可见<code class="highlighter-rouge">B.add()</code>方法只是完成了简单单一的功能，与类B的对象状态无关，因此可以将其本地化，直接代替原来的调用，以达到解耦的目的。解耦后如下所示:</p>
 
-<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">A</span> <span class="p">{</span>
-<span class="p">...</span>
-  <span class="n">aMethod</span><span class="p">()</span> <span class="p">{</span>
-    <span class="k">return</span> <span class="mi">1</span><span class="o">+</span><span class="mi">2</span><span class="p">;</span>  
-  <span class="p">}</span>
-<span class="p">}</span>
-</code></pre></div></div>
+<pre><code class="language-clike">class A {
+...
+  aMethod() {
+    return 1+2;  
+  }
+}
+</code></pre>
 
 <h3 id="类型二">类型二</h3>
 
 <p>调用位置在代码段末尾，而且改调用与自身状态无关，例如：</p>
 
-<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">A</span> <span class="p">{</span>
-  <span class="n">B</span> <span class="n">b</span><span class="p">;</span>
-  <span class="n">aMethod</span><span class="p">(){</span>
-    <span class="n">dosomething</span><span class="p">();</span>
-    <span class="n">b</span><span class="p">.</span><span class="n">inc</span><span class="p">();</span>
-  <span class="p">}</span>
-<span class="p">}</span>
+<pre><code class="language-clike">class A {
+  B b;
+  aMethod(){
+    dosomething();
+    b.inc();
+  }
+}
 
-<span class="k">class</span> <span class="nc">B</span> <span class="p">{</span>
-  <span class="k">static</span> <span class="kt">int</span> <span class="n">m</span><span class="p">;</span>
-  <span class="n">inc</span><span class="p">(){</span>
-    <span class="n">m</span><span class="o">++</span><span class="p">;</span>
-  <span class="p">}</span>
-<span class="p">}</span>
+class B {
+  static int m;
+  inc(){
+    m++;
+  }
+}
 
-<span class="k">class</span> <span class="nc">C</span><span class="p">{</span>
-  <span class="n">A</span> <span class="n">a</span><span class="p">;</span>
-  <span class="n">cMethod</span><span class="p">(){</span>
-    <span class="n">a</span><span class="p">.</span><span class="n">Method</span><span class="p">();</span>
-  <span class="p">}</span>
-<span class="p">}</span>
-</code></pre></div></div>
+class C{
+  A a;
+  cMethod(){
+    a.Method();
+  }
+}
+</code></pre>
 
 <p>由于<code class="highlighter-rouge">B.inc()</code>涉及到B的状态<code class="highlighter-rouge">int m</code>，无法直接本地化到A中，但是该方法与A的状态无关，因此可以查找使用了<code class="highlighter-rouge">aMethod</code>的地方，例如类C中的<code class="highlighter-rouge">cMethod()</code>方法中调用了<code class="highlighter-rouge">aMethod()</code>，我们可以将<code class="highlighter-rouge">b.inc()</code>提到<code class="highlighter-rouge">aMethod()</code>方法外，例如：</p>
 
-<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">A</span> <span class="p">{</span>
-  <span class="n">aMethod</span><span class="p">(){</span>
-    <span class="n">dosomething</span><span class="p">();</span>
-  <span class="p">}</span>
-<span class="p">}</span>
+<pre><code class="language-clike">class A {
+  aMethod(){
+    dosomething();
+  }
+}
 
-<span class="k">class</span> <span class="nc">C</span><span class="p">{</span>
-  <span class="n">A</span> <span class="n">a</span><span class="p">;</span>
-  <span class="n">B</span> <span class="n">b</span><span class="p">;</span>
-  <span class="n">cMethod</span><span class="p">(){</span>
-    <span class="n">a</span><span class="p">.</span><span class="n">Method</span><span class="p">();</span>
-    <span class="n">b</span><span class="p">.</span><span class="n">inc</span><span class="p">();</span>
-  <span class="p">}</span>
-<span class="p">}</span>
-</code></pre></div></div>
+class C{
+  A a;
+  B b;
+  cMethod(){
+    a.Method();
+    b.inc();
+  }
+}
+</code></pre>
 
 <p>可见修改后，类A已经不依赖与类B。</p>
 

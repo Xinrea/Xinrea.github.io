@@ -138,40 +138,40 @@ Author: Ray-Eldath
 
 <p>但是ffxiv作为一款使用diretX开发的游戏，其游戏窗口屏蔽了在外的按键模拟信息，简单的<code class="highlighter-rouge">keybd_event()</code>和<code class="highlighter-rouge">mouse_event()</code>并无法实现对游戏内的模拟操作，在网上查询一系列资料后，发现只要能够获取窗口的句柄，便能够轻松地使用<code class="highlighter-rouge">PostMessage()</code>方式模拟按键信息，实现代码如下：</p>
 
-<figure class="highlight"><pre><code class="language-c" data-lang="c"><span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="k">const</span> <span class="o">*</span><span class="n">argv</span><span class="p">[])</span>
-<span class="p">{</span>
-	<span class="n">HWND</span> <span class="n">hwnd</span> <span class="o">=</span> <span class="n">FindWindow</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s">L"最终幻想XIV"</span><span class="p">);</span>
-	<span class="k">if</span> <span class="p">(</span><span class="n">hwnd</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">"Error:Can't find window!"</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
-	<span class="k">else</span> <span class="p">{</span>
-		<span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">"Log:Find hwnd is "</span> <span class="o">&lt;&lt;</span> <span class="n">hwnd</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
-		<span class="n">DWORD</span> <span class="n">proc_id</span><span class="p">;</span>
-		<span class="n">GetWindowThreadProcessId</span><span class="p">(</span><span class="n">hwnd</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">proc_id</span><span class="p">);</span>
-		<span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">"Log:Get PID is "</span> <span class="o">&lt;&lt;</span> <span class="n">proc_id</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
-		<span class="n">PostMessage</span><span class="p">(</span><span class="n">hwnd</span><span class="p">,</span> <span class="n">WM_KEYDOWN</span><span class="p">,</span> <span class="n">VkKeyScan</span><span class="p">(</span><span class="sc">'a'</span><span class="p">),</span> <span class="mi">0</span><span class="p">);</span>
-		<span class="n">Sleep</span><span class="p">(</span><span class="mi">500</span><span class="p">);</span>
-		<span class="n">PostMessage</span><span class="p">(</span><span class="n">hwnd</span><span class="p">,</span> <span class="n">WM_KEYUP</span><span class="p">,</span> <span class="n">VkKeyScan</span><span class="p">(</span><span class="sc">'a'</span><span class="p">),</span> <span class="mi">0</span><span class="p">);</span>
-	<span class="p">}</span>
-	<span class="n">system</span><span class="p">(</span><span class="s">"pause"</span><span class="p">);</span>
-<span class="p">}</span></code></pre></figure>
+<figure class="highlight"><pre><code class="language-clike" data-lang="clike">int main(int argc, char const *argv[])
+{
+	HWND hwnd = FindWindow(0, L"最终幻想XIV");
+	if (hwnd == 0)cout &lt;&lt; "Error:Can't find window!" &lt;&lt; endl;
+	else {
+		cout &lt;&lt; "Log:Find hwnd is " &lt;&lt; hwnd &lt;&lt; endl;
+		DWORD proc_id;
+		GetWindowThreadProcessId(hwnd, &amp;proc_id);
+		cout &lt;&lt; "Log:Get PID is " &lt;&lt; proc_id &lt;&lt; endl;
+		PostMessage(hwnd, WM_KEYDOWN, VkKeyScan('a'), 0);
+		Sleep(500);
+		PostMessage(hwnd, WM_KEYUP, VkKeyScan('a'), 0);
+	}
+	system("pause");
+}</code></pre></figure>
 
 <p>但在不经意中了解到，获得窗口句柄，然后使用<code class="highlighter-rouge">GetWindowThreadProcessID()</code>即可获得窗口对应的进程ID，再用<code class="highlighter-rouge">OpenProcess()</code>甚至可以获得进程权限，进行对其内存的读写。如下：</p>
 
-<figure class="highlight"><pre><code class="language-c" data-lang="c"><span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="k">const</span> <span class="o">*</span><span class="n">argv</span><span class="p">[])</span>
-<span class="p">{</span>
-	<span class="n">HWND</span> <span class="n">hwnd</span> <span class="o">=</span> <span class="n">FindWindow</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s">L"最终幻想XIV"</span><span class="p">);</span>
-	<span class="k">if</span> <span class="p">(</span><span class="n">hwnd</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">"Error:Can't find window!"</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
-	<span class="k">else</span> <span class="p">{</span>
-		<span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">"Log:Find hwnd is "</span> <span class="o">&lt;&lt;</span> <span class="n">hwnd</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
-		<span class="n">DWORD</span> <span class="n">proc_id</span><span class="p">;</span>
-		<span class="n">GetWindowThreadProcessId</span><span class="p">(</span><span class="n">hwnd</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">proc_id</span><span class="p">);</span>
-		<span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">"Log:Get PID is "</span> <span class="o">&lt;&lt;</span> <span class="n">proc_id</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
-		<span class="n">HANDLE</span> <span class="n">hProc</span> <span class="o">=</span> <span class="n">OpenProcess</span><span class="p">(</span><span class="n">PROCESS_ALL_ACCESS</span><span class="p">,</span> <span class="n">FALSE</span><span class="p">,</span> <span class="n">procId</span><span class="p">);</span>
-		<span class="n">DWORD</span> <span class="n">adr</span> <span class="o">=</span> <span class="n">xxxx</span><span class="p">;</span>
-		<span class="n">DWORD</span> <span class="n">pointed</span><span class="p">;</span>
-		<span class="n">ReadProcessMemory</span><span class="p">(</span><span class="n">hProc</span><span class="p">,</span> <span class="p">(</span><span class="n">LPCVOID</span><span class="p">)</span><span class="n">adr</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">pointed</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span><span class="nb">NULL</span><span class="p">)</span>
-	<span class="p">}</span>
-	<span class="n">system</span><span class="p">(</span><span class="s">"pause"</span><span class="p">);</span>
-<span class="p">}</span></code></pre></figure>
+<figure class="highlight"><pre><code class="language-clike" data-lang="clike">int main(int argc, char const *argv[])
+{
+	HWND hwnd = FindWindow(0, L"最终幻想XIV");
+	if (hwnd == 0)cout &lt;&lt; "Error:Can't find window!" &lt;&lt; endl;
+	else {
+		cout &lt;&lt; "Log:Find hwnd is " &lt;&lt; hwnd &lt;&lt; endl;
+		DWORD proc_id;
+		GetWindowThreadProcessId(hwnd, &amp;proc_id);
+		cout &lt;&lt; "Log:Get PID is " &lt;&lt; proc_id &lt;&lt; endl;
+		HANDLE hProc = OpenProcess(PROCESS_ALL_ACCESS, FALSE, procId);
+		DWORD adr = xxxx;
+		DWORD pointed;
+		ReadProcessMemory(hProc, (LPCVOID)adr, &amp;pointed, 4,NULL)
+	}
+	system("pause");
+}</code></pre></figure>
 
 <blockquote>
   <p>adr即为需要提前找好的内存地址，<code class="highlighter-rouge">ReadProcessMemory()</code>会读取数据存放在pointed中。（adr的寻找、偏移的确定都会在第二篇中进行讲解）</p>
@@ -183,39 +183,39 @@ Author: Ray-Eldath
 
 <p>而确定基址，便是确定<code class="highlighter-rouge">ffxiv_dx11.exe</code>的入口地址，在游戏进程下，会有多个模块，而模块入口地址的确定有多种方法，在这里我提供一种方法，在现情境下，我们只需找到<code class="highlighter-rouge">ffxiv_dx11.exe</code>的入口地址。</p>
 
-<figure class="highlight"><pre><code class="language-c" data-lang="c"><span class="cp">#include &lt;Tlhelp32.h&gt;
-</span>
-<span class="n">DWORD</span> <span class="nf">dwGetModuleBaseAddress</span><span class="p">(</span><span class="n">DWORD</span> <span class="n">dwProcessIdentifier</span><span class="p">,</span> <span class="n">TCHAR</span> <span class="o">*</span><span class="n">lpszModuleName</span><span class="p">)</span>
-<span class="p">{</span>
-	<span class="n">HANDLE</span> <span class="n">hSnapshot</span> <span class="o">=</span> <span class="n">CreateToolhelp32Snapshot</span><span class="p">(</span><span class="n">TH32CS_SNAPMODULE</span><span class="p">,</span> <span class="n">dwProcessIdentifier</span><span class="p">);</span>
-	<span class="n">DWORD</span> <span class="n">dwModuleBaseAddress</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-	<span class="k">if</span> <span class="p">(</span><span class="n">hSnapshot</span> <span class="o">==</span> <span class="n">INVALID_HANDLE_VALUE</span><span class="p">)</span> <span class="p">{</span>
-		<span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">"ERROR: CreateToolhelp Failed"</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
-		<span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">GetLastError</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
-	<span class="p">}</span>
-	<span class="k">else</span>
-	<span class="p">{</span>
-		<span class="n">MODULEENTRY32</span> <span class="n">ModuleEntry32</span> <span class="o">=</span> <span class="p">{</span> <span class="mi">0</span> <span class="p">};</span>
-		<span class="n">ModuleEntry32</span><span class="p">.</span><span class="n">dwSize</span> <span class="o">=</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">MODULEENTRY32</span><span class="p">);</span>
-		<span class="k">if</span> <span class="p">(</span><span class="n">Module32First</span><span class="p">(</span><span class="n">hSnapshot</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">ModuleEntry32</span><span class="p">))</span>
-		<span class="p">{</span>
-			<span class="k">do</span>
-			<span class="p">{</span>
-				<span class="k">if</span> <span class="p">(</span><span class="n">_tcscmp</span><span class="p">(</span><span class="n">ModuleEntry32</span><span class="p">.</span><span class="n">szModule</span><span class="p">,</span> <span class="n">lpszModuleName</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
-				<span class="p">{</span>
-					<span class="n">dwModuleBaseAddress</span> <span class="o">=</span> <span class="p">(</span><span class="n">DWORD</span><span class="p">)</span><span class="n">ModuleEntry32</span><span class="p">.</span><span class="n">modBaseAddr</span><span class="p">;</span>
-					<span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">"OK"</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
-					<span class="k">break</span><span class="p">;</span>
-				<span class="p">}</span>
-			<span class="p">}</span> <span class="k">while</span> <span class="p">(</span><span class="n">Module32Next</span><span class="p">(</span><span class="n">hSnapshot</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">ModuleEntry32</span><span class="p">));</span>
-		<span class="p">}</span>
-		<span class="k">else</span> <span class="p">{</span>
-			<span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">"ERROR: Module32First Failed"</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
-		<span class="p">}</span>
-		<span class="n">CloseHandle</span><span class="p">(</span><span class="n">hSnapshot</span><span class="p">);</span>
-	<span class="p">}</span>
-	<span class="k">return</span> <span class="n">dwModuleBaseAddress</span><span class="p">;</span>
-<span class="p">}</span></code></pre></figure>
+<figure class="highlight"><pre><code class="language-clike" data-lang="clike">#include &lt;Tlhelp32.h&gt;
+
+DWORD dwGetModuleBaseAddress(DWORD dwProcessIdentifier, TCHAR *lpszModuleName)
+{
+	HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, dwProcessIdentifier);
+	DWORD dwModuleBaseAddress = 0;
+	if (hSnapshot == INVALID_HANDLE_VALUE) {
+		cout &lt;&lt; "ERROR: CreateToolhelp Failed" &lt;&lt; endl;
+		cout &lt;&lt; GetLastError() &lt;&lt; endl;
+	}
+	else
+	{
+		MODULEENTRY32 ModuleEntry32 = { 0 };
+		ModuleEntry32.dwSize = sizeof(MODULEENTRY32);
+		if (Module32First(hSnapshot, &amp;ModuleEntry32))
+		{
+			do
+			{
+				if (_tcscmp(ModuleEntry32.szModule, lpszModuleName) == 0)
+				{
+					dwModuleBaseAddress = (DWORD)ModuleEntry32.modBaseAddr;
+					cout &lt;&lt; "OK" &lt;&lt; endl;
+					break;
+				}
+			} while (Module32Next(hSnapshot, &amp;ModuleEntry32));
+		}
+		else {
+			cout &lt;&lt; "ERROR: Module32First Failed" &lt;&lt; endl;
+		}
+		CloseHandle(hSnapshot);
+	}
+	return dwModuleBaseAddress;
+}</code></pre></figure>
 
 <p>使用<code class="highlighter-rouge">CreateToolhelp32Snapshot()</code>来获取ffxiv游戏进程的一份快照，该快照中含有进程下模块的信息。使用VS调试，可以看到模块的信息。</p>
 

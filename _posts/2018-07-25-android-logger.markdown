@@ -16,7 +16,7 @@ tags: android learn c
 
 ## 数据结构
 
-```c
+```clike
 struct logger_entry {
 	__u16		len;	/* length of the payload */
 	__u16		__pad;	/* no matter what, we get 2 bytes of padding */
@@ -28,7 +28,7 @@ struct logger_entry {
 };
 ```
 
-```c
+```clike
 struct logger_log {
 	unsigned char *		buffer;	/* the ring buffer itself */
 	struct miscdevice	misc;	/* misc device representing the log */
@@ -40,7 +40,8 @@ struct logger_log {
 	size_t			size;	/* size of the log */
 };
 ```
-```c
+
+```clike
 struct logger_reader {
 	struct logger_log *	log;	/* associated log */
 	struct list_head	list;	/* entry in logger_log's list */
@@ -80,7 +81,7 @@ struct logger_reader {
 
 ### static int __init logger_init(void);
 
-```c
+```clike
 static int __init logger_init(void)
 {
 	int ret;
@@ -108,7 +109,7 @@ out:
 
 ### static int __init init_log(struct logger_log *log);
 
-```c
+```clike
 static int __init init_log(struct logger_log *log)
 {
 	int ret;
@@ -133,7 +134,7 @@ static int __init init_log(struct logger_log *log)
 
 ### static int logger_open(struct inode *inode, struct file *file);
 
-```c
+```clike
 static int logger_open(struct inode *inode, struct file *file)
 {
 	struct logger_log *log;
@@ -176,7 +177,7 @@ static int logger_open(struct inode *inode, struct file *file)
 
 ### static ssize_t logger_read(struct file *file, char __user *buf, size_t count, loff_t *pos);
 
-```c
+```clike
 static ssize_t logger_read(struct file *file, char __user *buf,
 			   size_t count, loff_t *pos)
 {
@@ -249,7 +250,7 @@ out:
 
 ### ssize_t logger_aio_write(struct kiocb *iocb, const struct iovec *iov, unsigned long nr_segs, loff_t ppos);
 
-```c
+```clike
 ssize_t logger_aio_write(struct kiocb *iocb, const struct iovec *iov,
 			 unsigned long nr_segs, loff_t ppos)
 {

@@ -8,7 +8,7 @@ tags: c++ singleton design-pattern
 
 类中所有成员均设为静态（static），例如：
 
-```cpp
+```clike
 class Singleton {
  private:
   static int data1; // 类内声明
@@ -37,7 +37,7 @@ int Singleton::data2;
 
 单例实例作为静态成员变量，类内声明类外定义，在静态变量初始化过程中生成单例，例如：
 
-```cpp
+```clike
 class Singleton {
  private:
   static Singleton instance;
@@ -55,7 +55,7 @@ Singleton Singleton::instance;
 
 在使用时，应注意用引用来获得实例：
 
-```cpp
+```clike
 Singleton& ins = Singleton::getInstance();
 ```
 
@@ -65,7 +65,7 @@ Singleton& ins = Singleton::getInstance();
 
 单例实例只在第一次使用时进行初始化。例如：
 
-```cpp
+```clike
 class Singleton {
  private:
   static Singleton* instance;
@@ -95,7 +95,7 @@ Singleton* Singleton::instance = NULL;
 
 使用局部静态变量，当进入`getInstance()`方法中时，局部变量初始化。例如：
 
-```cpp
+```clike
 class Singleton {
  private:
   Singleton(){
@@ -118,7 +118,7 @@ class Singleton {
 
 boost的实现方式：综合局部静态变量和类静态全局变量，使用代理类的静态全局变量的构造函数，来调用`getInstance()`生成局部静态变量，即在静态变量/全局变量初始化的过程中，完成了单例类的实例化。例如：
 
-```cpp
+```clike
 class Singleton {
  private:
   Singleton(){

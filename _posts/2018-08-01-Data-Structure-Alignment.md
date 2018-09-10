@@ -8,7 +8,7 @@ tags: c c++ alignment
 
 ### E1 默认
 
-```cpp
+```clike
 struct test {
         char a;
         int b;
@@ -20,7 +20,7 @@ test t1;
 
 ### E2 \_\_attribute\_\_((packed, aligned(X)))
 
-```cpp
+```clike
 struct __attribute__((packed,aligned(1))) test2{
         char a;
         int b;
@@ -38,7 +38,7 @@ test2 t2;
 
 ### E3 \#pragma pack(push,X)
 
-```cpp
+```clike
 #pragma pack(push,1)
 struct test3 {
         char a;
@@ -56,7 +56,7 @@ test3 t3;
 
 ### 第一组
 
-```c
+```clike
 struct st {
   char a;
   int b;
@@ -71,7 +71,7 @@ Unpacked| 12 | 12 | 12 | 16 |
 
 ### 第二组
 
-```c
+```clike
 struct st {
   char a;
   double b;

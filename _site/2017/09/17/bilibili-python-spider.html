@@ -6,7 +6,7 @@
     <title>爬取bilibili视频封面 - Xinrea的个人博客</title>
     <meta name="author"  content="黄涵">
     <meta name="description" content="爬取bilibili视频封面">
-    <meta name="keywords"  content="">
+    <meta name="keywords"  content="network, learn, python">
     <!-- Open Graph -->
     <meta property="og:title" content="爬取bilibili视频封面 - Xinrea的个人博客">
     <meta property="og:type" content="website">
@@ -112,6 +112,14 @@ Author: Ray-Eldath
     <div class="post-wrapper">
       <div class="post-tags">
         
+          
+            <a href="https://xinrea.net/tags#network" class="post-tag">network</a>
+          
+            <a href="https://xinrea.net/tags#learn" class="post-tag">learn</a>
+          
+            <a href="https://xinrea.net/tags#python" class="post-tag">python</a>
+          
+        
       </div>
       <h1>爬取bilibili视频封面</h1>
       <div class="post-meta">
@@ -126,44 +134,42 @@ Author: Ray-Eldath
     
 
     <article class="markdown-body">
-      <p>###目标###</p>
+      <h3 id="目标">目标</h3>
+
 <ul>
   <li>能够爬取指定up主视频封面</li>
   <li>能够设定爬取封面数量</li>
 </ul>
 
-<p>###工具###
-python3 / chrome</p>
+<h3 id="工具">工具</h3>
 
-<p>###思路###</p>
+<p>python3 / chrome</p>
 
-<p>首先，直接查看加载完成后的网页源代码，例如：<br />
-<a href="http://space.bilibili.com/879702/#!/video">up主Shymieeeee的稿件</a></p>
+<h3 id="思路">思路</h3>
+
+<p>首先，直接查看加载完成后的网页源代码，例如：</p>
+
+<p><a href="http://space.bilibili.com/879702/#!/video">up主Shymieeeee的稿件</a></p>
 
 <p>发现源代码中并未包含与视频封面图相关的信息，而是在body中包含着如下的信息</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;div id="browser-version-tip"&gt;
-  &lt;div class="wrapper"&gt;
-    抱歉，您正在使用不支持的浏览器访问个人空间。推荐您&lt;a href="//www.google.cn/chrome/browser/desktop/index.html"&gt;安装 Chrome 浏览器&lt;/a&gt;以获得更好的体验 ヾ(o◕∀◕)ﾉ
-    &lt;a href="javascript:;" id="close-browser-tip"&gt;&lt;/a&gt;
-  &lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="space-body"&gt;&lt;/div&gt;
-</code></pre></div></div>
+<figure class="highlight"><pre><code class="language-html" data-lang="html"><span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">"browser-version-tip"</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"wrapper"</span><span class="nt">&gt;</span>
+    抱歉，您正在使用不支持的浏览器访问个人空间。推荐您<span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">"//www.google.cn/chrome/browser/desktop/index.html"</span><span class="nt">&gt;</span>安装 Chrome 浏览器<span class="nt">&lt;/a&gt;</span>以获得更好的体验 ヾ(o◕∀◕)ﾉ
+    <span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">"javascript:;"</span> <span class="na">id=</span><span class="s">"close-browser-tip"</span><span class="nt">&gt;&lt;/a&gt;</span>
+  <span class="nt">&lt;/div&gt;</span>
+<span class="nt">&lt;/div&gt;</span>
+<span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">"space-body"</span><span class="nt">&gt;&lt;/div&gt;</span></code></pre></figure>
 
 <p>在使用chrome审查元素时，能够看到网页中包含着相关信息：</p>
 
 <p><img src="https://xinrea.net/assets/pic9172210.png" alt="审查工具查看结果" /></p>
 
-<p>可见整个网页是使用js动态生成的，要找到数据的来源，可以使用chrome工具中的Network，查看网页在加载过程中加载了哪些数据，选择查看XHR类型，可以找到如下图所示的数据：</p>
+<p>可见整个网页是使用js动态生成的，要找到数据的来源，可以使用chrome工具中的Network，查看网页在加载过程中加载了哪些数据，选择查看XHR类型，可以找到对应的JSON数据。</p>
 
-<p><img src="https://xinrea.net/assets/pic9172215.png" alt="Network-XHR" /></p>
+<p>分析数据，可以看出，在JSON数据中，[“data”][“vlist”]中的各项list均为稿件信息，其中每个list中的[“pic”]即为视频封面的地址。</p>
 
-<p>分析数据，可以看出，在json数据中，[“data”][“vlist”]中的各项list均为稿件信息，其中每个list中的[“pic”]即为视频封面的地址。</p>
-
-<p><img src="https://xinrea.net/assets/pic9172218.png" alt="数据结构分析" /></p>
-
-<p>###设计###</p>
+<h3 id="设计">设计</h3>
 
 <p>整个代码十分简洁，如下所示：</p>
 
@@ -201,7 +207,7 @@ python3 / chrome</p>
       </div>
       <div class="author-name" rel="author">黄涵</div>
       <div class="bio">
-        <p>拖延症晚期患者，兴趣广泛，但无一精通</p>
+        <p>拖延症晚期患者，兴趣广泛，但无一精通。      对该博客内容有任何疑问，请邮件联系me@xinrea.com</p>
       </div>
       
       <ul class="sns-links">

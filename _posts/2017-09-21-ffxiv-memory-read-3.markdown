@@ -2,7 +2,7 @@
 layout: post
 title: "FinalFantasyXIV 内存数据的读取（3）"
 date:   2017-09-21 22:27:00 +0800
-categories: windows c++ memory
+tags: windows c++ memory
 ---
 
 对于变量的定位，在此推荐使用`Cheat Engine`，算是一个远古神器吧，许多游戏辅助工具都需要借助这个工具。下面是`Cheat Engine`的主界面截图：

@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>设计模式 - 单例模式 - Xinrea的个人博客</title>
+    <meta name="author"  content="黄涵">
+    <meta name="description" content="设计模式 - 单例模式">
+    <meta name="keywords"  content="c++, singleton, design-pattern">
+    <!-- Open Graph -->
+    <meta property="og:title" content="设计模式 - 单例模式 - Xinrea的个人博客">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://xinrea.net/2018/08/01/singleton.html">
+    <meta property="og:description" content="C++/Python/Java - Game/Music/Animation">
+    <meta property="og:site_name" content="Xinrea的个人博客">
+    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
+    <link rel="stylesheet" href="/assets/css/github-markdown.css">
+    <link rel="stylesheet" href="/assets/css/prism.css">
+    <link rel="stylesheet" href="/assets/css/share.min.css">
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+	
+	<!--
+Author: Ray-Eldath
+refer to:
+ - http://docs.mathjax.org/en/latest/options/index.html
+-->
+
+	<script type="text/javascript" async src="https://cdn.bootcss.com/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+	
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+		jax: ["input/TeX", "output/HTML-CSS"],
+		tex2jax: {
+			inlineMath: [ ["$", "$"] ],
+			displayMath: [ ["$$", "$$"] ],
+			skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+		},
+		"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"] }
+      });
+    </script>
+
+	
+    <!--
+Author: Ray-Eldath
+-->
+<style>
+    .markdown-body .anchor{
+        float: left;
+        margin-top: -8px;
+        margin-left: -20px;
+        padding-right: 4px;
+        line-height: 1;
+        opacity: 0;
+    }
+    
+    .markdown-body .anchor .anchor-icon{
+        font-size: 15px
+    }
+</style>
+<script>
+    $(document).ready(function() {
+        let nodes = document.querySelector(".markdown-body").querySelectorAll("h1,h2,h3")
+        for(let node of nodes) {
+            var anchor = document.createElement("a")
+            var anchorIcon = document.createElement("i")
+            anchorIcon.setAttribute("class", "fa fa-anchor fa-lg anchor-icon")
+            anchorIcon.setAttribute("aria-hidden", true)
+            anchor.setAttribute("class", "anchor")
+            anchor.setAttribute("href", "#" + node.getAttribute("id"))
+            
+            anchor.onmouseover = function() {
+                this.style.opacity = "0.4"
+            }
+            
+            anchor.onmouseout = function() {
+                this.style.opacity = "0"
+            }
+            
+            anchor.appendChild(anchorIcon)
+            node.appendChild(anchor)
+        }
+    })
+</script>
+</head>
+
+
+<body>
+  <!--[if lt IE 10]>
+<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+<![endif]-->
+  <input id="nm-switch" type="hidden" value="false"> <header class="g-header">
+    <div class="g-logo">
+      <a href="/"></a>
+    </div>
+    <i id="menu-toggle" class="iconfont icon-menu"></i>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="/tags.html">tags</a></li>
+            
+        </ul>
+    </nav>
+</header>
+
+
+  <header class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover" data-theme="default">
+    <div class="post-wrapper">
+      <div class="post-tags">
+        
+          
+            <a href="https://xinrea.net/tags#c++" class="post-tag">c++</a>
+          
+            <a href="https://xinrea.net/tags#singleton" class="post-tag">singleton</a>
+          
+            <a href="https://xinrea.net/tags#design-pattern" class="post-tag">design-pattern</a>
+          
+        
+      </div>
+      <h1>设计模式 - 单例模式</h1>
+      <div class="post-meta">
+        <span class="post-meta-item"><i class="iconfont icon-author"></i><a href="https://xinrea.net" target="_blank" rel="author">黄涵</a></></span>
+        <time class="post-meta-item" datetime="18-08-01"><i class="iconfont icon-date"></i>01 Aug 2018</time>
+      </div>
+    </div>
+    
+  </header>
+
+  <div class="post-content visible">
+    
+
+    <article class="markdown-body">
+      <h2 id="静态成员方式">静态成员方式</h2>
+
+<p>类中所有成员均设为静态（static），例如：</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Singleton</span> <span class="p">{</span>
+ <span class="k">private</span><span class="o">:</span>
+  <span class="k">static</span> <span class="kt">int</span> <span class="n">data1</span><span class="p">;</span> <span class="c1">// 类内声明</span>
+  <span class="k">static</span> <span class="kt">int</span> <span class="n">data2</span><span class="p">;</span>
+ <span class="k">public</span><span class="o">:</span>
+  <span class="k">static</span> <span class="kt">int</span> <span class="n">getData1</span><span class="p">(){</span>
+    <span class="k">return</span> <span class="n">data1</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="k">static</span> <span class="kt">int</span> <span class="n">getData2</span><span class="p">(){</span>
+    <span class="k">return</span> <span class="n">data2</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">};</span>
+<span class="kt">int</span> <span class="n">Singleton</span><span class="o">::</span><span class="n">data1</span><span class="p">;</span> <span class="c1">// 类外定义</span>
+<span class="kt">int</span> <span class="n">Singleton</span><span class="o">::</span><span class="n">data2</span><span class="p">;</span>
+</code></pre></div></div>
+
+<p>当然，这样声明的话，所有的成员均只会存在一份，实现了单例模式的<code class="highlighter-rouge">基本要求</code>，这种方法只是给全局变量及方法加上了一个类域而已。</p>
+
+<p>使用静态成员函数的缺点如下所示：</p>
+
+<ul>
+  <li>静态成员函数不能为<code class="highlighter-rouge">const</code>。静态成员函数只能够访问其参数、类的静态成员和全局变量，参数中并没有隐藏的<code class="highlighter-rouge">this</code>指针，而C++中<code class="highlighter-rouge">const</code>是用于修饰<code class="highlighter-rouge">this</code>指针的，因此静态成员函数不可能为<code class="highlighter-rouge">const</code>；同理，<code class="highlighter-rouge">volatile</code>也是如此，被<code class="highlighter-rouge">volatile</code>修饰的成员函数可以被<code class="highlighter-rouge">volatile</code>对象访问，<code class="highlighter-rouge">volatile</code>对象无法访问非<code class="highlighter-rouge">volatile</code>成员函数。</li>
+  <li>静态成员函数不能为<code class="highlighter-rouge">virtual</code>。虚函数机制由虚函数指针和虚函数表实现，其中虚函数指针为类的普通成员变量，这意味着一个虚函数必定与一个实例对象紧密相关，没有对象的话，虚函数指针和虚函数表都不存在，就无从谈起“虚静态成员函数”了，因此<code class="highlighter-rouge">static</code>和<code class="highlighter-rouge">virtual</code>相冲突，成员函数可不能可能既是静态的又是虚的。</li>
+  <li>静态成员变量的初始化顺序难以控制。变量的初始化过程：<code class="highlighter-rouge">基类的静态变量/全局变量-&gt;子类的静态变量/全局变量-&gt;基类的成员变量-&gt;子类的成员变量</code>，其中静态成员变量的定义在类外，当静态成员变量间有初始化依赖顺序时，在类外的定义顺序就变得额外重要，如果顺序出错就会导致初始化出错，难以控制和修改。<strong>注意：<code class="highlighter-rouge">const</code>成员变量在进行列表初始化时，初始化顺序与列表中的顺序无关，而只与在内存中的位置-即在类内定义的顺序有关</strong></li>
+</ul>
+
+<h2 id="饿汉模式">饿汉模式</h2>
+
+<p>单例实例作为静态成员变量，类内声明类外定义，在静态变量初始化过程中生成单例，例如：</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Singleton</span> <span class="p">{</span>
+ <span class="k">private</span><span class="o">:</span>
+  <span class="k">static</span> <span class="n">Singleton</span> <span class="n">instance</span><span class="p">;</span>
+  <span class="n">Singleton</span><span class="p">(){</span>
+  <span class="p">}</span>
+ <span class="k">public</span><span class="o">:</span>
+  <span class="k">static</span> <span class="n">Singleton</span><span class="o">&amp;</span> <span class="n">getInstance</span><span class="p">(){</span>
+    <span class="k">return</span> <span class="n">instance</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">};</span>
+<span class="n">Singleton</span> <span class="n">Singleton</span><span class="o">::</span><span class="n">instance</span><span class="p">;</span>
+</code></pre></div></div>
+
+<p>这种方式仍然存在初始化顺序的问题，由于单例在静态变量初始化过程中完成创建，多个单例类在此期间的初始化顺序时难以控制的，若它们之间有着依赖关系，在构造函数中用到了其他单例对象，则可能导致错误。</p>
+
+<p>在使用时，应注意用引用来获得实例：</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">Singleton</span><span class="o">&amp;</span> <span class="n">ins</span> <span class="o">=</span> <span class="n">Singleton</span><span class="o">::</span><span class="n">getInstance</span><span class="p">();</span>
+</code></pre></div></div>
+
+<p>否则会导致一次构造，多次解析。</p>
+
+<h2 id="懒汉模式">懒汉模式</h2>
+
+<p>单例实例只在第一次使用时进行初始化。例如：</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Singleton</span> <span class="p">{</span>
+ <span class="k">private</span><span class="o">:</span>
+  <span class="k">static</span> <span class="n">Singleton</span><span class="o">*</span> <span class="n">instance</span><span class="p">;</span>
+  <span class="n">Singleton</span><span class="p">(){</span>
+  <span class="p">}</span>
+  <span class="o">~</span><span class="n">Singleton</span><span class="p">(){</span>
+  <span class="p">}</span>
+ <span class="k">public</span><span class="o">:</span>
+  <span class="k">static</span> <span class="n">Singleton</span><span class="o">*</span> <span class="n">getInstance</span><span class="p">(){</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">instance</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
+      <span class="n">instance</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Singleton</span><span class="p">();</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">instance</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">};</span>
+<span class="n">Singleton</span><span class="o">*</span> <span class="n">Singleton</span><span class="o">::</span><span class="n">instance</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+</code></pre></div></div>
+
+<p>缺点如下：</p>
+
+<ul>
+  <li><code class="highlighter-rouge">getInstance()</code>中使用的<code class="highlighter-rouge">if</code>语句，在多线程情况下并不安全。</li>
+  <li><code class="highlighter-rouge">getInstance()</code>获得的是单例的指针，无法自动析构。</li>
+</ul>
+
+<p>可以添加一个Destructor()方法，来手动析构。</p>
+
+<h2 id="懒汉模式改进">懒汉模式改进</h2>
+
+<p>使用局部静态变量，当进入<code class="highlighter-rouge">getInstance()</code>方法中时，局部变量初始化。例如：</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Singleton</span> <span class="p">{</span>
+ <span class="k">private</span><span class="o">:</span>
+  <span class="n">Singleton</span><span class="p">(){</span>
+  <span class="p">}</span>
+ <span class="k">public</span><span class="o">:</span>
+  <span class="k">static</span> <span class="n">Singleton</span><span class="o">&amp;</span> <span class="n">getInstance</span><span class="p">(){</span>
+    <span class="k">static</span> <span class="n">Singleton</span> <span class="n">instance</span><span class="p">;</span>
+    <span class="k">return</span> <span class="n">instance</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">};</span>
+</code></pre></div></div>
+
+<p>缺点：</p>
+
+<ul>
+  <li>任意两个单例类的构造函数（<code class="highlighter-rouge">getInstance()</code>）不能够互相引用对方的实例。</li>
+  <li>单例的实例互相引用时，注意析构带来的问题。</li>
+  <li>多线程下，编译器仍然是相当于使用if语句判断<code class="highlighter-rouge">instance</code>是否初始化，因此也是多线程不安全的。为了解决多线程的问题，可以向<code class="highlighter-rouge">instance</code>加锁，但是初始化后，每次<code class="highlighter-rouge">getInstance()</code>仍会经历锁的过程，导致效率下降。</li>
+</ul>
+
+<h2 id="最终实现">最终实现</h2>
+
+<p>boost的实现方式：综合局部静态变量和类静态全局变量，使用代理类的静态全局变量的构造函数，来调用<code class="highlighter-rouge">getInstance()</code>生成局部静态变量，即在静态变量/全局变量初始化的过程中，完成了单例类的实例化。例如：</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Singleton</span> <span class="p">{</span>
+ <span class="k">private</span><span class="o">:</span>
+  <span class="n">Singleton</span><span class="p">(){</span>
+  <span class="p">}</span>
+ <span class="k">protected</span><span class="o">:</span>
+  <span class="k">class</span> <span class="nc">Proxy</span> <span class="p">{</span>
+    <span class="n">Proxy</span><span class="p">(){</span>
+      <span class="n">Singleton</span><span class="o">::</span><span class="n">getInstance</span><span class="p">();</span>
+    <span class="p">}</span>
+  <span class="p">};</span>
+  <span class="k">static</span> <span class="n">Proxy</span> <span class="n">proxy</span><span class="p">;</span>
+ <span class="k">public</span><span class="o">:</span>
+  <span class="k">static</span> <span class="n">Singleton</span><span class="o">&amp;</span> <span class="n">getInstance</span><span class="p">(){</span>
+    <span class="k">static</span> <span class="n">Singleton</span> <span class="n">instance</span><span class="p">;</span>
+    <span class="k">return</span> <span class="n">instance</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">};</span>
+<span class="n">Singleton</span><span class="o">::</span><span class="n">Proxy</span> <span class="n">Singleton</span><span class="o">::</span><span class="n">proxy</span><span class="p">;</span>
+</code></pre></div></div>
+
+    </article>
+
+    
+    <div class="social-share-wrapper">
+      <div class="social-share"></div>
+    </div>
+    
+  </div>
+
+  <section class="author-detail">
+    <section class="post-footer-item author-card">
+      <div class="avatar">
+        <img src="https://xinrea.net/assets/img/profile.png" alt="">
+      </div>
+      <div class="author-name" rel="author">黄涵</div>
+      <div class="bio">
+        <p>拖延症晚期患者，兴趣广泛，但无一精通。      对该博客内容有任何疑问，请邮件联系me@xinrea.com</p>
+      </div>
+      
+      <ul class="sns-links">
+        
+        <li>
+          <a href="//github.com/Xinrea" target="_blank">
+                    <i class="iconfont icon-github"></i>
+                </a>
+        </li>
+        
+      </ul>
+      
+    </section>
+    <section class="post-footer-item read-next">
+      
+      <div class="read-next-item">
+        <a href="/2018/08/14/Java-Decoupling.html" class="read-next-link"></a>
+        <section>
+          <span>Java模块解耦</span>
+          <p>步骤一 解决简单耦合</p>
+        </section>
+        
+     </div>
+      
+
+      
+      <div class="read-next-item">
+        <a href="/2018/08/01/Data-Structure-Alignment.html" class="read-next-link"></a>
+          <section>
+            <span>结构体的数据对齐问题</span>
+            <p>  以下方法均为GCC扩展方法</p>
+          </section>
+          
+      </div>
+      
+    </section>
+    <section class="post-footer-item comment">
+      <div id="disqus_thread"></div>
+    </section>
+  </section>
+
+  <footer class="g-footer">
+  <section>Xinrea的个人博客 ©
+  
+  
+    2017
+    -
+  
+  2018
+  </section>
+  <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+</footer>
+
+
+  <script src="/assets/js/social-share.min.js"></script>
+  <script>
+    socialShare('.social-share', {
+      sites: [
+        
+          'wechat'
+          ,
+          
+        
+          'weibo'
+          ,
+          
+        
+          'douban'
+          ,
+          
+        
+          'twitter'
+          
+        
+      ],
+      wechatQrcodeTitle: "分享到微信朋友圈",
+      wechatQrcodeHelper: '<p>扫码后点击右上角</p><p>将本文分享至朋友圈</p>'
+    });
+  </script>
+
+  
+
+  <script src="/assets/js/prism.js"></script>
+  <script src="/assets/js/index.min.js"></script>
+</body>
+
+</html>

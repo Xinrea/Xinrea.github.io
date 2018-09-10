@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Android Logger源码分析 - Xinrea的个人博客</title>
+    <meta name="author"  content="黄涵">
+    <meta name="description" content="Android Logger源码分析">
+    <meta name="keywords"  content="android, learn, c">
+    <!-- Open Graph -->
+    <meta property="og:title" content="Android Logger源码分析 - Xinrea的个人博客">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://xinrea.net/2018/07/25/android-logger.html">
+    <meta property="og:description" content="C++/Python/Java - Game/Music/Animation">
+    <meta property="og:site_name" content="Xinrea的个人博客">
+    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
+    <link rel="stylesheet" href="/assets/css/github-markdown.css">
+    <link rel="stylesheet" href="/assets/css/prism.css">
+    <link rel="stylesheet" href="/assets/css/share.min.css">
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+	
+	<!--
+Author: Ray-Eldath
+refer to:
+ - http://docs.mathjax.org/en/latest/options/index.html
+-->
+
+	<script type="text/javascript" async src="https://cdn.bootcss.com/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+	
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+		jax: ["input/TeX", "output/HTML-CSS"],
+		tex2jax: {
+			inlineMath: [ ["$", "$"] ],
+			displayMath: [ ["$$", "$$"] ],
+			skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+		},
+		"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"] }
+      });
+    </script>
+
+	
+    <!--
+Author: Ray-Eldath
+-->
+<style>
+    .markdown-body .anchor{
+        float: left;
+        margin-top: -8px;
+        margin-left: -20px;
+        padding-right: 4px;
+        line-height: 1;
+        opacity: 0;
+    }
+    
+    .markdown-body .anchor .anchor-icon{
+        font-size: 15px
+    }
+</style>
+<script>
+    $(document).ready(function() {
+        let nodes = document.querySelector(".markdown-body").querySelectorAll("h1,h2,h3")
+        for(let node of nodes) {
+            var anchor = document.createElement("a")
+            var anchorIcon = document.createElement("i")
+            anchorIcon.setAttribute("class", "fa fa-anchor fa-lg anchor-icon")
+            anchorIcon.setAttribute("aria-hidden", true)
+            anchor.setAttribute("class", "anchor")
+            anchor.setAttribute("href", "#" + node.getAttribute("id"))
+            
+            anchor.onmouseover = function() {
+                this.style.opacity = "0.4"
+            }
+            
+            anchor.onmouseout = function() {
+                this.style.opacity = "0"
+            }
+            
+            anchor.appendChild(anchorIcon)
+            node.appendChild(anchor)
+        }
+    })
+</script>
+</head>
+
+
+<body>
+  <!--[if lt IE 10]>
+<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+<![endif]-->
+  <input id="nm-switch" type="hidden" value="false"> <header class="g-header">
+    <div class="g-logo">
+      <a href="/"></a>
+    </div>
+    <i id="menu-toggle" class="iconfont icon-menu"></i>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="/tags.html">tags</a></li>
+            
+        </ul>
+    </nav>
+</header>
+
+
+  <header class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover" data-theme="default">
+    <div class="post-wrapper">
+      <div class="post-tags">
+        
+          
+            <a href="https://xinrea.net/tags#android" class="post-tag">android</a>
+          
+            <a href="https://xinrea.net/tags#learn" class="post-tag">learn</a>
+          
+            <a href="https://xinrea.net/tags#c" class="post-tag">c</a>
+          
+        
+      </div>
+      <h1>Android Logger源码分析</h1>
+      <div class="post-meta">
+        <span class="post-meta-item"><i class="iconfont icon-author"></i><a href="https://xinrea.net" target="_blank" rel="author">黄涵</a></></span>
+        <time class="post-meta-item" datetime="18-07-25"><i class="iconfont icon-date"></i>25 Jul 2018</time>
+      </div>
+    </div>
+    
+  </header>
+
+  <div class="post-content visible">
+    
+
+    <article class="markdown-body">
+      <p>(Removed in Android Lollipop)</p>
+
+<p><code class="highlighter-rouge">简介</code>：轻量级的日志系统，以驱动的形式实现在内核中，提供了Java和C/C++接口。</p>
+
+<p><code class="highlighter-rouge">位置</code>：</p>
+
+<p><code class="highlighter-rouge">kernel/common/drivers/staging/android/logger.h</code></p>
+
+<p><code class="highlighter-rouge">kernel/common/drivers/staging/android/logger.c</code></p>
+
+<h2 id="数据结构">数据结构</h2>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span> <span class="n">logger_entry</span> <span class="p">{</span>
+	<span class="n">__u16</span>		<span class="n">len</span><span class="p">;</span>	<span class="cm">/* length of the payload */</span>
+	<span class="n">__u16</span>		<span class="n">__pad</span><span class="p">;</span>	<span class="cm">/* no matter what, we get 2 bytes of padding */</span>
+	<span class="n">__s32</span>		<span class="n">pid</span><span class="p">;</span>	<span class="cm">/* generating process's pid */</span>
+	<span class="n">__s32</span>		<span class="n">tid</span><span class="p">;</span>	<span class="cm">/* generating process's tid */</span>
+	<span class="n">__s32</span>		<span class="n">sec</span><span class="p">;</span>	<span class="cm">/* seconds since Epoch */</span>
+	<span class="n">__s32</span>		<span class="n">nsec</span><span class="p">;</span>	<span class="cm">/* nanoseconds */</span>
+	<span class="kt">char</span>		<span class="n">msg</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>	<span class="cm">/* the entry's payload */</span>
+<span class="p">};</span>
+</code></pre></div></div>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span> <span class="n">logger_log</span> <span class="p">{</span>
+	<span class="kt">unsigned</span> <span class="kt">char</span> <span class="o">*</span>		<span class="n">buffer</span><span class="p">;</span>	<span class="cm">/* the ring buffer itself */</span>
+	<span class="k">struct</span> <span class="n">miscdevice</span>	<span class="n">misc</span><span class="p">;</span>	<span class="cm">/* misc device representing the log */</span>
+	<span class="n">wait_queue_head_t</span>	<span class="n">wq</span><span class="p">;</span>	<span class="cm">/* wait queue for readers */</span>
+	<span class="k">struct</span> <span class="n">list_head</span>	<span class="n">readers</span><span class="p">;</span> <span class="cm">/* this log's readers */</span>
+	<span class="k">struct</span> <span class="n">mutex</span>		<span class="n">mutex</span><span class="p">;</span>	<span class="cm">/* mutex protecting buffer */</span>
+	<span class="kt">size_t</span>			<span class="n">w_off</span><span class="p">;</span>	<span class="cm">/* current write head offset */</span>
+	<span class="kt">size_t</span>			<span class="n">head</span><span class="p">;</span>	<span class="cm">/* new readers start here */</span>
+	<span class="kt">size_t</span>			<span class="n">size</span><span class="p">;</span>	<span class="cm">/* size of the log */</span>
+<span class="p">};</span>
+</code></pre></div></div>
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span> <span class="n">logger_reader</span> <span class="p">{</span>
+	<span class="k">struct</span> <span class="n">logger_log</span> <span class="o">*</span>	<span class="n">log</span><span class="p">;</span>	<span class="cm">/* associated log */</span>
+	<span class="k">struct</span> <span class="n">list_head</span>	<span class="n">list</span><span class="p">;</span>	<span class="cm">/* entry in logger_log's list */</span>
+	<span class="kt">size_t</span>			<span class="n">r_off</span><span class="p">;</span>	<span class="cm">/* current read head offset */</span>
+<span class="p">};</span>
+</code></pre></div></div>
+<h2 id="详细描述">详细描述</h2>
+
+<h3 id="logger_log">logger_log</h3>
+
+<p><code class="highlighter-rouge">logger_log</code>是最主要的数据结构</p>
+
+<ul>
+  <li>
+    <p><code class="highlighter-rouge">buffer</code>中保存着多条<code class="highlighter-rouge">logger_entry</code></p>
+  </li>
+  <li>
+    <p><code class="highlighter-rouge">reader</code>中保存着正在读取日志的进程, 由<code class="highlighter-rouge">logger_reader</code>来描述</p>
+  </li>
+</ul>
+
+<p><code class="highlighter-rouge">buffer</code>作为环形缓冲区使用，因此给定一个<code class="highlighter-rouge">offerset</code>，需要取余来获得在<code class="highlighter-rouge">buffer</code>中的真实位置，logger中优化了取余操作:</p>
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">((</span><span class="n">n</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">log</span><span class="o">-&gt;</span><span class="n">size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+</code></pre></div></div>
+<p>当<code class="highlighter-rouge">log-&gt;size</code>为2^k时，该与运算结果即为取余。</p>
+
+<h3 id="logger_entry">logger_entry</h3>
+
+<p><code class="highlighter-rouge">logger_entry</code>是记录的最小单位，在<code class="highlighter-rouge">buffer</code>中，一条记录的形式为：<code class="highlighter-rouge">logger_entry|priority|tag|msg</code>。</p>
+
+<p>注意，<code class="highlighter-rouge">logger_entry</code>最后<code class="highlighter-rouge">char msg[0]</code>中，<code class="highlighter-rouge">msg</code>指向的地址为<code class="highlighter-rouge">msg</code>自身所在的位置。</p>
+
+<p>记录中除去<code class="highlighter-rouge">logger_entry</code>结构体外的长度，记录在<code class="highlighter-rouge">len</code>中。</p>
+
+<h3 id="logger_reader">logger_reader</h3>
+
+<ul>
+  <li><code class="highlighter-rouge">log</code>指向欲读取的缓冲区，由于Logger驱动程序会注册三个日志设备(类型: misc)，因此<code class="highlighter-rouge">reader</code>实际上有三种选择进行读取</li>
+  <li><code class="highlighter-rouge">list</code>包含<code class="highlighter-rouge">logger_log</code>中的list的条目，也就是用于连接其他<code class="highlighter-rouge">reader</code></li>
+</ul>
+
+<h2 id="logger驱动的初始化过程">Logger驱动的初始化过程</h2>
+
+<h3 id="static-int-__init-logger_initvoid">static int __init logger_init(void);</h3>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">static</span> <span class="kt">int</span> <span class="n">__init</span> <span class="nf">logger_init</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+<span class="p">{</span>
+	<span class="kt">int</span> <span class="n">ret</span><span class="p">;</span>
+
+	<span class="n">ret</span> <span class="o">=</span> <span class="n">init_log</span><span class="p">(</span><span class="o">&amp;</span><span class="n">log_main</span><span class="p">);</span>
+	<span class="k">if</span> <span class="p">(</span><span class="n">unlikely</span><span class="p">(</span><span class="n">ret</span><span class="p">))</span>
+		<span class="k">goto</span> <span class="n">out</span><span class="p">;</span>
+
+	<span class="n">ret</span> <span class="o">=</span> <span class="n">init_log</span><span class="p">(</span><span class="o">&amp;</span><span class="n">log_events</span><span class="p">);</span>
+	<span class="k">if</span> <span class="p">(</span><span class="n">unlikely</span><span class="p">(</span><span class="n">ret</span><span class="p">))</span>
+		<span class="k">goto</span> <span class="n">out</span><span class="p">;</span>
+
+	<span class="n">ret</span> <span class="o">=</span> <span class="n">init_log</span><span class="p">(</span><span class="o">&amp;</span><span class="n">log_radio</span><span class="p">);</span>
+	<span class="k">if</span> <span class="p">(</span><span class="n">unlikely</span><span class="p">(</span><span class="n">ret</span><span class="p">))</span>
+		<span class="k">goto</span> <span class="n">out</span><span class="p">;</span>
+
+<span class="nl">out:</span>
+	<span class="k">return</span> <span class="n">ret</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<ul>
+  <li>初始化<code class="highlighter-rouge">log_main</code></li>
+  <li>初始化<code class="highlighter-rouge">log_event</code></li>
+  <li>初始化<code class="highlighter-rouge">log_radio</code></li>
+</ul>
+
+<h3 id="static-int-__init-init_logstruct-logger_log-log">static int __init init_log(struct logger_log *log);</h3>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">static</span> <span class="kt">int</span> <span class="n">__init</span> <span class="nf">init_log</span><span class="p">(</span><span class="k">struct</span> <span class="n">logger_log</span> <span class="o">*</span><span class="n">log</span><span class="p">)</span>
+<span class="p">{</span>
+	<span class="kt">int</span> <span class="n">ret</span><span class="p">;</span>
+
+	<span class="n">ret</span> <span class="o">=</span> <span class="n">misc_register</span><span class="p">(</span><span class="o">&amp;</span><span class="n">log</span><span class="o">-&gt;</span><span class="n">misc</span><span class="p">);</span>
+	<span class="k">if</span> <span class="p">(</span><span class="n">unlikely</span><span class="p">(</span><span class="n">ret</span><span class="p">))</span> <span class="p">{</span>
+		<span class="n">printk</span><span class="p">(</span><span class="n">KERN_ERR</span> <span class="s">"logger: failed to register misc "</span>
+		       <span class="s">"device for log '%s'!</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">log</span><span class="o">-&gt;</span><span class="n">misc</span><span class="p">.</span><span class="n">name</span><span class="p">);</span>
+		<span class="k">return</span> <span class="n">ret</span><span class="p">;</span>
+	<span class="p">}</span>
+
+	<span class="n">printk</span><span class="p">(</span><span class="n">KERN_INFO</span> <span class="s">"logger: created %luK log '%s'</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span>
+	       <span class="p">(</span><span class="kt">unsigned</span> <span class="kt">long</span><span class="p">)</span> <span class="n">log</span><span class="o">-&gt;</span><span class="n">size</span> <span class="o">&gt;&gt;</span> <span class="mi">10</span><span class="p">,</span> <span class="n">log</span><span class="o">-&gt;</span><span class="n">misc</span><span class="p">.</span><span class="n">name</span><span class="p">);</span>
+
+	<span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>简单的注册了一下设备<code class="highlighter-rouge">/dev/log/main</code> <code class="highlighter-rouge">/dev/log/event</code> <code class="highlighter-rouge">/dev/log/radio</code>。</p>
+
+<h2 id="logger驱动的日志读取过程">Logger驱动的日志读取过程</h2>
+
+<h3 id="static-int-logger_openstruct-inode-inode-struct-file-file">static int logger_open(struct inode *inode, struct file *file);</h3>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">static</span> <span class="kt">int</span> <span class="nf">logger_open</span><span class="p">(</span><span class="k">struct</span> <span class="n">inode</span> <span class="o">*</span><span class="n">inode</span><span class="p">,</span> <span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="n">file</span><span class="p">)</span>
+<span class="p">{</span>
+	<span class="k">struct</span> <span class="n">logger_log</span> <span class="o">*</span><span class="n">log</span><span class="p">;</span>
+	<span class="kt">int</span> <span class="n">ret</span><span class="p">;</span>
+
+	<span class="n">ret</span> <span class="o">=</span> <span class="n">nonseekable_open</span><span class="p">(</span><span class="n">inode</span><span class="p">,</span> <span class="n">file</span><span class="p">);</span>
+	<span class="k">if</span> <span class="p">(</span><span class="n">ret</span><span class="p">)</span>
+		<span class="k">return</span> <span class="n">ret</span><span class="p">;</span>
+
+	<span class="n">log</span> <span class="o">=</span> <span class="n">get_log_from_minor</span><span class="p">(</span><span class="n">MINOR</span><span class="p">(</span><span class="n">inode</span><span class="o">-&gt;</span><span class="n">i_rdev</span><span class="p">));</span>
+	<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">log</span><span class="p">)</span>
+		<span class="k">return</span> <span class="o">-</span><span class="n">ENODEV</span><span class="p">;</span>
+
+	<span class="k">if</span> <span class="p">(</span><span class="n">file</span><span class="o">-&gt;</span><span class="n">f_mode</span> <span class="o">&amp;</span> <span class="n">FMODE_READ</span><span class="p">)</span> <span class="p">{</span>
+		<span class="k">struct</span> <span class="n">logger_reader</span> <span class="o">*</span><span class="n">reader</span><span class="p">;</span>
+
+		<span class="n">reader</span> <span class="o">=</span> <span class="n">kmalloc</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">logger_reader</span><span class="p">),</span> <span class="n">GFP_KERNEL</span><span class="p">);</span>
+		<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">reader</span><span class="p">)</span>
+			<span class="k">return</span> <span class="o">-</span><span class="n">ENOMEM</span><span class="p">;</span>
+
+		<span class="n">reader</span><span class="o">-&gt;</span><span class="n">log</span> <span class="o">=</span> <span class="n">log</span><span class="p">;</span>
+		<span class="n">INIT_LIST_HEAD</span><span class="p">(</span><span class="o">&amp;</span><span class="n">reader</span><span class="o">-&gt;</span><span class="n">list</span><span class="p">);</span>
+
+		<span class="n">mutex_lock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">log</span><span class="o">-&gt;</span><span class="n">mutex</span><span class="p">);</span>
+		<span class="n">reader</span><span class="o">-&gt;</span><span class="n">r_off</span> <span class="o">=</span> <span class="n">log</span><span class="o">-&gt;</span><span class="n">head</span><span class="p">;</span>
+		<span class="n">list_add_tail</span><span class="p">(</span><span class="o">&amp;</span><span class="n">reader</span><span class="o">-&gt;</span><span class="n">list</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">log</span><span class="o">-&gt;</span><span class="n">readers</span><span class="p">);</span>
+		<span class="n">mutex_unlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">log</span><span class="o">-&gt;</span><span class="n">mutex</span><span class="p">);</span>
+
+		<span class="n">file</span><span class="o">-&gt;</span><span class="n">private_data</span> <span class="o">=</span> <span class="n">reader</span><span class="p">;</span>
+	<span class="p">}</span> <span class="k">else</span>
+		<span class="n">file</span><span class="o">-&gt;</span><span class="n">private_data</span> <span class="o">=</span> <span class="n">log</span><span class="p">;</span>
+
+	<span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>设备在open时，如果是读设备，则<code class="highlighter-rouge">file-&gt;private_data = reader</code>，否则<code class="highlighter-rouge">file-&gt;private_data = log</code>。</p>
+
+<p>于是在<code class="highlighter-rouge">logger_read</code>之前，创建好了<code class="highlighter-rouge">reader</code>并保存在了<code class="highlighter-rouge">file-&gt;private_data</code>中。</p>
+
+<h3 id="static-ssize_t-logger_readstruct-file-file-char-__user-buf-size_t-count-loff_t-pos">static ssize_t logger_read(struct file *file, char __user *buf, size_t count, loff_t *pos);</h3>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">static</span> <span class="kt">ssize_t</span> <span class="nf">logger_read</span><span class="p">(</span><span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="n">file</span><span class="p">,</span> <span class="kt">char</span> <span class="n">__user</span> <span class="o">*</span><span class="n">buf</span><span class="p">,</span>
+			   <span class="kt">size_t</span> <span class="n">count</span><span class="p">,</span> <span class="n">loff_t</span> <span class="o">*</span><span class="n">pos</span><span class="p">)</span>
+<span class="p">{</span>
+	<span class="k">struct</span> <span class="n">logger_reader</span> <span class="o">*</span><span class="n">reader</span> <span class="o">=</span> <span class="n">file</span><span class="o">-&gt;</span><span class="n">private_data</span><span class="p">;</span>
+	<span class="k">struct</span> <span class="n">logger_log</span> <span class="o">*</span><span class="n">log</span> <span class="o">=</span> <span class="n">reader</span><span class="o">-&gt;</span><span class="n">log</span><span class="p">;</span>
+	<span class="kt">ssize_t</span> <span class="n">ret</span><span class="p">;</span>
+	<span class="n">DEFINE_WAIT</span><span class="p">(</span><span class="n">wait</span><span class="p">);</span>
+
+<span class="nl">start:</span>
+	<span class="k">while</span> <span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+		<span class="n">prepare_to_wait</span><span class="p">(</span><span class="o">&amp;</span><span class="n">log</span><span class="o">-&gt;</span><span class="n">wq</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">wait</span><span class="p">,</span> <span class="n">TASK_INTERRUPTIBLE</span><span class="p">);</span>
+
+		<span class="n">mutex_lock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">log</span><span class="o">-&gt;</span><span class="n">mutex</span><span class="p">);</span>
+		<span class="n">ret</span> <span class="o">=</span> <span class="p">(</span><span class="n">log</span><span class="o">-&gt;</span><span class="n">w_off</span> <span class="o">==</span> <span class="n">reader</span><span class="o">-&gt;</span><span class="n">r_off</span><span class="p">);</span>
+		<span class="n">mutex_unlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">log</span><span class="o">-&gt;</span><span class="n">mutex</span><span class="p">);</span>
+		<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">ret</span><span class="p">)</span>
+			<span class="k">break</span><span class="p">;</span>
+
+		<span class="k">if</span> <span class="p">(</span><span class="n">file</span><span class="o">-&gt;</span><span class="n">f_flags</span> <span class="o">&amp;</span> <span class="n">O_NONBLOCK</span><span class="p">)</span> <span class="p">{</span>
+			<span class="n">ret</span> <span class="o">=</span> <span class="o">-</span><span class="n">EAGAIN</span><span class="p">;</span>
+			<span class="k">break</span><span class="p">;</span>
+		<span class="p">}</span>
+
+		<span class="k">if</span> <span class="p">(</span><span class="n">signal_pending</span><span class="p">(</span><span class="n">current</span><span class="p">))</span> <span class="p">{</span>
+			<span class="n">ret</span> <span class="o">=</span> <span class="o">-</span><span class="n">EINTR</span><span class="p">;</span>
+			<span class="k">break</span><span class="p">;</span>
+		<span class="p">}</span>
+
+		<span class="n">schedule</span><span class="p">();</span>
+	<span class="p">}</span>
+
+	<span class="n">finish_wait</span><span class="p">(</span><span class="o">&amp;</span><span class="n">log</span><span class="o">-&gt;</span><span class="n">wq</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">wait</span><span class="p">);</span>
+	<span class="k">if</span> <span class="p">(</span><span class="n">ret</span><span class="p">)</span>
+		<span class="k">return</span> <span class="n">ret</span><span class="p">;</span>
+
+	<span class="n">mutex_lock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">log</span><span class="o">-&gt;</span><span class="n">mutex</span><span class="p">);</span>
+
+	<span class="cm">/* is there still something to read or did we race? */</span>
+	<span class="k">if</span> <span class="p">(</span><span class="n">unlikely</span><span class="p">(</span><span class="n">log</span><span class="o">-&gt;</span><span class="n">w_off</span> <span class="o">==</span> <span class="n">reader</span><span class="o">-&gt;</span><span class="n">r_off</span><span class="p">))</span> <span class="p">{</span>
+		<span class="n">mutex_unlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">log</span><span class="o">-&gt;</span><span class="n">mutex</span><span class="p">);</span>
+		<span class="k">goto</span> <span class="n">start</span><span class="p">;</span>
+	<span class="p">}</span>
+
+	<span class="cm">/* get the size of the next entry */</span>
+	<span class="n">ret</span> <span class="o">=</span> <span class="n">get_entry_len</span><span class="p">(</span><span class="n">log</span><span class="p">,</span> <span class="n">reader</span><span class="o">-&gt;</span><span class="n">r_off</span><span class="p">);</span>
+	<span class="k">if</span> <span class="p">(</span><span class="n">count</span> <span class="o">&lt;</span> <span class="n">ret</span><span class="p">)</span> <span class="p">{</span>
+		<span class="n">ret</span> <span class="o">=</span> <span class="o">-</span><span class="n">EINVAL</span><span class="p">;</span>
+		<span class="k">goto</span> <span class="n">out</span><span class="p">;</span>
+	<span class="p">}</span>
+
+	<span class="cm">/* get exactly one entry from the log */</span>
+	<span class="n">ret</span> <span class="o">=</span> <span class="n">do_read_log_to_user</span><span class="p">(</span><span class="n">log</span><span class="p">,</span> <span class="n">reader</span><span class="p">,</span> <span class="n">buf</span><span class="p">,</span> <span class="n">ret</span><span class="p">);</span>
+
+<span class="nl">out:</span>
+	<span class="n">mutex_unlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">log</span><span class="o">-&gt;</span><span class="n">mutex</span><span class="p">);</span>
+
+	<span class="k">return</span> <span class="n">ret</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>取出<code class="highlighter-rouge">file-&gt;private_data</code>中的<code class="highlighter-rouge">reader</code>，获取相关信息。在while循环中等待日志可读(log-&gt;w_off == reader-&gt;r_off，相等时不可读)，如果可读则跳出循环，进行读操作。</p>
+
+<p>每次读取一条，首先需要读取<code class="highlighter-rouge">struct logger_entry</code>开头的<code class="highlighter-rouge">len</code>变量，其长度为两个字节，显然其地址必然指向<code class="highlighter-rouge">len</code>的第一个字节，但由于其保存在循环缓冲区中，第二个字节可能不是地址+1，还有可能是<code class="highlighter-rouge">buffer</code>的头部，因此在<code class="highlighter-rouge">get_entry_len()</code>中对此情况进行了判断。</p>
+
+<p>真正的读取操作就比较简单了，使用<code class="highlighter-rouge">copy_to_user()</code>将数据拷贝到用户空间即可。</p>
+
+<h2 id="logger驱动的日志写入过程">Logger驱动的日志写入过程</h2>
+
+<p>从<code class="highlighter-rouge">logger_open()</code>知，当设备打开时为写模式时，<code class="highlighter-rouge">file-&gt;private_data</code>即为<code class="highlighter-rouge">log</code>，使用方法<code class="highlighter-rouge">logger_aio_write()</code>对设备进行写入。</p>
+
+<h3 id="ssize_t-logger_aio_writestruct-kiocb-iocb-const-struct-iovec-iov-unsigned-long-nr_segs-loff_t-ppos">ssize_t logger_aio_write(struct kiocb *iocb, const struct iovec *iov, unsigned long nr_segs, loff_t ppos);</h3>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">ssize_t</span> <span class="nf">logger_aio_write</span><span class="p">(</span><span class="k">struct</span> <span class="n">kiocb</span> <span class="o">*</span><span class="n">iocb</span><span class="p">,</span> <span class="k">const</span> <span class="k">struct</span> <span class="n">iovec</span> <span class="o">*</span><span class="n">iov</span><span class="p">,</span>
+			 <span class="kt">unsigned</span> <span class="kt">long</span> <span class="n">nr_segs</span><span class="p">,</span> <span class="n">loff_t</span> <span class="n">ppos</span><span class="p">)</span>
+<span class="p">{</span>
+	<span class="k">struct</span> <span class="n">logger_log</span> <span class="o">*</span><span class="n">log</span> <span class="o">=</span> <span class="n">file_get_log</span><span class="p">(</span><span class="n">iocb</span><span class="o">-&gt;</span><span class="n">ki_filp</span><span class="p">);</span>
+	<span class="kt">size_t</span> <span class="n">orig</span> <span class="o">=</span> <span class="n">log</span><span class="o">-&gt;</span><span class="n">w_off</span><span class="p">;</span>
+	<span class="k">struct</span> <span class="n">logger_entry</span> <span class="n">header</span><span class="p">;</span>
+	<span class="k">struct</span> <span class="n">timespec</span> <span class="n">now</span><span class="p">;</span>
+	<span class="kt">ssize_t</span> <span class="n">ret</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+	<span class="n">now</span> <span class="o">=</span> <span class="n">current_kernel_time</span><span class="p">();</span>
+
+	<span class="n">header</span><span class="p">.</span><span class="n">pid</span> <span class="o">=</span> <span class="n">current</span><span class="o">-&gt;</span><span class="n">tgid</span><span class="p">;</span>
+	<span class="n">header</span><span class="p">.</span><span class="n">tid</span> <span class="o">=</span> <span class="n">current</span><span class="o">-&gt;</span><span class="n">pid</span><span class="p">;</span>
+	<span class="n">header</span><span class="p">.</span><span class="n">sec</span> <span class="o">=</span> <span class="n">now</span><span class="p">.</span><span class="n">tv_sec</span><span class="p">;</span>
+	<span class="n">header</span><span class="p">.</span><span class="n">nsec</span> <span class="o">=</span> <span class="n">now</span><span class="p">.</span><span class="n">tv_nsec</span><span class="p">;</span>
+	<span class="n">header</span><span class="p">.</span><span class="n">len</span> <span class="o">=</span> <span class="n">min_t</span><span class="p">(</span><span class="kt">size_t</span><span class="p">,</span> <span class="n">iocb</span><span class="o">-&gt;</span><span class="n">ki_left</span><span class="p">,</span> <span class="n">LOGGER_ENTRY_MAX_PAYLOAD</span><span class="p">);</span>
+
+	<span class="cm">/* null writes succeed, return zero */</span>
+	<span class="k">if</span> <span class="p">(</span><span class="n">unlikely</span><span class="p">(</span><span class="o">!</span><span class="n">header</span><span class="p">.</span><span class="n">len</span><span class="p">))</span>
+		<span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+
+	<span class="n">mutex_lock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">log</span><span class="o">-&gt;</span><span class="n">mutex</span><span class="p">);</span>
+
+	<span class="cm">/*
+	 * Fix up any readers, pulling them forward to the first readable
+	 * entry after (what will be) the new write offset. We do this now
+	 * because if we partially fail, we can end up with clobbered log
+	 * entries that encroach on readable buffer.
+	 */</span>
+	<span class="n">fix_up_readers</span><span class="p">(</span><span class="n">log</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">logger_entry</span><span class="p">)</span> <span class="o">+</span> <span class="n">header</span><span class="p">.</span><span class="n">len</span><span class="p">);</span>
+
+	<span class="n">do_write_log</span><span class="p">(</span><span class="n">log</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">header</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">logger_entry</span><span class="p">));</span>
+
+	<span class="k">while</span> <span class="p">(</span><span class="n">nr_segs</span><span class="o">--</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+		<span class="kt">size_t</span> <span class="n">len</span><span class="p">;</span>
+		<span class="kt">ssize_t</span> <span class="n">nr</span><span class="p">;</span>
+
+		<span class="cm">/* figure out how much of this vector we can keep */</span>
+		<span class="n">len</span> <span class="o">=</span> <span class="n">min_t</span><span class="p">(</span><span class="kt">size_t</span><span class="p">,</span> <span class="n">iov</span><span class="o">-&gt;</span><span class="n">iov_len</span><span class="p">,</span> <span class="n">header</span><span class="p">.</span><span class="n">len</span> <span class="o">-</span> <span class="n">ret</span><span class="p">);</span>
+
+		<span class="cm">/* write out this segment's payload */</span>
+		<span class="n">nr</span> <span class="o">=</span> <span class="n">do_write_log_from_user</span><span class="p">(</span><span class="n">log</span><span class="p">,</span> <span class="n">iov</span><span class="o">-&gt;</span><span class="n">iov_base</span><span class="p">,</span> <span class="n">len</span><span class="p">);</span>
+		<span class="k">if</span> <span class="p">(</span><span class="n">unlikely</span><span class="p">(</span><span class="n">nr</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">))</span> <span class="p">{</span>
+			<span class="n">log</span><span class="o">-&gt;</span><span class="n">w_off</span> <span class="o">=</span> <span class="n">orig</span><span class="p">;</span>
+			<span class="n">mutex_unlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">log</span><span class="o">-&gt;</span><span class="n">mutex</span><span class="p">);</span>
+			<span class="k">return</span> <span class="n">nr</span><span class="p">;</span>
+		<span class="p">}</span>
+
+		<span class="n">iov</span><span class="o">++</span><span class="p">;</span>
+		<span class="n">ret</span> <span class="o">+=</span> <span class="n">nr</span><span class="p">;</span>
+	<span class="p">}</span>
+
+	<span class="n">mutex_unlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">log</span><span class="o">-&gt;</span><span class="n">mutex</span><span class="p">);</span>
+
+	<span class="cm">/* wake up any blocked readers */</span>
+	<span class="n">wake_up_interruptible</span><span class="p">(</span><span class="o">&amp;</span><span class="n">log</span><span class="o">-&gt;</span><span class="n">wq</span><span class="p">);</span>
+
+	<span class="k">return</span> <span class="n">ret</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<ul>
+  <li><code class="highlighter-rouge">iocb</code>-io上下文</li>
+  <li><code class="highlighter-rouge">iov</code>-欲写入的内容</li>
+  <li><code class="highlighter-rouge">nr_segs</code>-长度（单位为段）</li>
+  <li><code class="highlighter-rouge">ppos</code>-没有用到</li>
+</ul>
+
+<p>首先初始化一条entry，名为<code class="highlighter-rouge">header</code>，然后用<code class="highlighter-rouge">fix_up_readers()</code>调整<code class="highlighter-rouge">reader</code>的r_offset，由于<code class="highlighter-rouge">reader</code>读取的单位是<code class="highlighter-rouge">entry</code>，在循环缓冲区中写入记录，很可能会覆盖破坏掉某<code class="highlighter-rouge">reader</code>正在读取的某条记录，因此需要检测是否有reader在读取覆盖范围内的记录，进行修正，跳过这条记录，修正到下一条。</p>
+
+<p>写入完记录后，<code class="highlighter-rouge">wake_up_interruptible()</code>来唤醒<code class="highlighter-rouge">reader</code>进程。</p>
+
+<blockquote>
+  <p>logger驱动模块在退出系统时不会卸载</p>
+</blockquote>
+
+    </article>
+
+    
+    <div class="social-share-wrapper">
+      <div class="social-share"></div>
+    </div>
+    
+  </div>
+
+  <section class="author-detail">
+    <section class="post-footer-item author-card">
+      <div class="avatar">
+        <img src="https://xinrea.net/assets/img/profile.png" alt="">
+      </div>
+      <div class="author-name" rel="author">黄涵</div>
+      <div class="bio">
+        <p>拖延症晚期患者，兴趣广泛，但无一精通。      对该博客内容有任何疑问，请邮件联系me@xinrea.com</p>
+      </div>
+      
+      <ul class="sns-links">
+        
+        <li>
+          <a href="//github.com/Xinrea" target="_blank">
+                    <i class="iconfont icon-github"></i>
+                </a>
+        </li>
+        
+      </ul>
+      
+    </section>
+    <section class="post-footer-item read-next">
+      
+      <div class="read-next-item">
+        <a href="/2018/07/27/Google-File-System.html" class="read-next-link"></a>
+        <section>
+          <span>Google File System 学习01</span>
+          <p>1 介绍</p>
+        </section>
+        
+     </div>
+      
+
+      
+      <div class="read-next-item">
+        <a href="/2017/09/21/ffxiv-memory-read-3.html" class="read-next-link"></a>
+          <section>
+            <span>FinalFantasyXIV 内存数据的读取（3）</span>
+            <p>对于变量的定位，在此推荐使用Cheat Engine，算是一个远古神器吧，许多游戏辅助工具都需要借助这个工具。下面...</p>
+          </section>
+          
+      </div>
+      
+    </section>
+    <section class="post-footer-item comment">
+      <div id="disqus_thread"></div>
+    </section>
+  </section>
+
+  <footer class="g-footer">
+  <section>Xinrea的个人博客 ©
+  
+  
+    2017
+    -
+  
+  2018
+  </section>
+  <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+</footer>
+
+
+  <script src="/assets/js/social-share.min.js"></script>
+  <script>
+    socialShare('.social-share', {
+      sites: [
+        
+          'wechat'
+          ,
+          
+        
+          'weibo'
+          ,
+          
+        
+          'douban'
+          ,
+          
+        
+          'twitter'
+          
+        
+      ],
+      wechatQrcodeTitle: "分享到微信朋友圈",
+      wechatQrcodeHelper: '<p>扫码后点击右上角</p><p>将本文分享至朋友圈</p>'
+    });
+  </script>
+
+  
+
+  <script src="/assets/js/prism.js"></script>
+  <script src="/assets/js/index.min.js"></script>
+</body>
+
+</html>

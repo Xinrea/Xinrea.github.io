@@ -2,7 +2,7 @@
 layout: post
 title: "FinalFantasyXIV 内存数据的读取（2）"
 date:   2017-09-20 20:27:00 +0800
-categories: windows c++ memory
+tags: windows c++ memory
 ---
 
 上篇最后，给出了VS调试`ffxiv_dx11.exe`的图，可以看到，在我的环境下，其载入内存后基地址为`0x00007FF68AE90000`，若多次启动游戏进程，会发现其地址似乎是一个固定值，但是又似乎找不到这个地址从何而来，实际上，要弄清楚基址从何而来，需要了解程序运行的机制。

@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>结构体的数据对齐问题 - Xinrea的个人博客</title>
+    <meta name="author"  content="黄涵">
+    <meta name="description" content="结构体的数据对齐问题">
+    <meta name="keywords"  content="c, c++, alignment">
+    <!-- Open Graph -->
+    <meta property="og:title" content="结构体的数据对齐问题 - Xinrea的个人博客">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://xinrea.net/2018/08/01/Data-Structure-Alignment.html">
+    <meta property="og:description" content="C++/Python/Java - Game/Music/Animation">
+    <meta property="og:site_name" content="Xinrea的个人博客">
+    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
+    <link rel="stylesheet" href="/assets/css/github-markdown.css">
+    <link rel="stylesheet" href="/assets/css/prism.css">
+    <link rel="stylesheet" href="/assets/css/share.min.css">
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+	
+	<!--
+Author: Ray-Eldath
+refer to:
+ - http://docs.mathjax.org/en/latest/options/index.html
+-->
+
+	<script type="text/javascript" async src="https://cdn.bootcss.com/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+	
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+		jax: ["input/TeX", "output/HTML-CSS"],
+		tex2jax: {
+			inlineMath: [ ["$", "$"] ],
+			displayMath: [ ["$$", "$$"] ],
+			skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+		},
+		"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"] }
+      });
+    </script>
+
+	
+    <!--
+Author: Ray-Eldath
+-->
+<style>
+    .markdown-body .anchor{
+        float: left;
+        margin-top: -8px;
+        margin-left: -20px;
+        padding-right: 4px;
+        line-height: 1;
+        opacity: 0;
+    }
+    
+    .markdown-body .anchor .anchor-icon{
+        font-size: 15px
+    }
+</style>
+<script>
+    $(document).ready(function() {
+        let nodes = document.querySelector(".markdown-body").querySelectorAll("h1,h2,h3")
+        for(let node of nodes) {
+            var anchor = document.createElement("a")
+            var anchorIcon = document.createElement("i")
+            anchorIcon.setAttribute("class", "fa fa-anchor fa-lg anchor-icon")
+            anchorIcon.setAttribute("aria-hidden", true)
+            anchor.setAttribute("class", "anchor")
+            anchor.setAttribute("href", "#" + node.getAttribute("id"))
+            
+            anchor.onmouseover = function() {
+                this.style.opacity = "0.4"
+            }
+            
+            anchor.onmouseout = function() {
+                this.style.opacity = "0"
+            }
+            
+            anchor.appendChild(anchorIcon)
+            node.appendChild(anchor)
+        }
+    })
+</script>
+</head>
+
+
+<body>
+  <!--[if lt IE 10]>
+<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+<![endif]-->
+  <input id="nm-switch" type="hidden" value="false"> <header class="g-header">
+    <div class="g-logo">
+      <a href="/"></a>
+    </div>
+    <i id="menu-toggle" class="iconfont icon-menu"></i>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="/tags.html">tags</a></li>
+            
+        </ul>
+    </nav>
+</header>
+
+
+  <header class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover" data-theme="default">
+    <div class="post-wrapper">
+      <div class="post-tags">
+        
+          
+            <a href="https://xinrea.net/tags#c" class="post-tag">c</a>
+          
+            <a href="https://xinrea.net/tags#c++" class="post-tag">c++</a>
+          
+            <a href="https://xinrea.net/tags#alignment" class="post-tag">alignment</a>
+          
+        
+      </div>
+      <h1>结构体的数据对齐问题</h1>
+      <div class="post-meta">
+        <span class="post-meta-item"><i class="iconfont icon-author"></i><a href="https://xinrea.net" target="_blank" rel="author">黄涵</a></></span>
+        <time class="post-meta-item" datetime="18-08-01"><i class="iconfont icon-date"></i>01 Aug 2018</time>
+      </div>
+    </div>
+    
+  </header>
+
+  <div class="post-content visible">
+    
+
+    <article class="markdown-body">
+      <blockquote>
+  <p>以下方法均为GCC扩展方法</p>
+</blockquote>
+
+<h3 id="e1-默认">E1 默认</h3>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span> <span class="n">test</span> <span class="p">{</span>
+        <span class="kt">char</span> <span class="n">a</span><span class="p">;</span>
+        <span class="kt">int</span> <span class="n">b</span><span class="p">;</span>
+<span class="p">};</span>
+<span class="n">test</span> <span class="n">t1</span><span class="p">;</span>
+</code></pre></div></div>
+
+<p><code class="highlighter-rouge">sizeof(t1) = 8</code></p>
+
+<h3 id="e2-__attribute__packed-alignedx">E2 __attribute__((packed, aligned(X)))</h3>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span> <span class="n">__attribute__</span><span class="p">((</span><span class="n">packed</span><span class="p">,</span><span class="n">aligned</span><span class="p">(</span><span class="mi">1</span><span class="p">)))</span> <span class="n">test2</span><span class="p">{</span>
+        <span class="kt">char</span> <span class="n">a</span><span class="p">;</span>
+        <span class="kt">int</span> <span class="n">b</span><span class="p">;</span>
+<span class="p">};</span>
+<span class="n">test2</span> <span class="n">t2</span><span class="p">;</span>
+</code></pre></div></div>
+
+<p><code class="highlighter-rouge">sizeof(t2) = 5</code></p>
+
+<p>省略<code class="highlighter-rouge">aligned(X)</code>时，相当于默认X=1</p>
+
+<p>其中<code class="highlighter-rouge">packed</code>指结构体内部成员间取消padding，紧凑排列。</p>
+
+<p><code class="highlighter-rouge">aligned</code>指结构体最终大小应为X的整数倍。<strong>注意，未设置<code class="highlighter-rouge">packed</code>时，X的值只会在大于等于结构体中最大的成员大小时生效</strong></p>
+
+<h3 id="e3-pragma-packpushx">E3 #pragma pack(push,X)</h3>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#pragma pack(push,1)
+</span><span class="k">struct</span> <span class="n">test3</span> <span class="p">{</span>
+        <span class="kt">char</span> <span class="n">a</span><span class="p">;</span>
+        <span class="kt">int</span> <span class="n">b</span><span class="p">;</span>
+<span class="p">};</span>
+<span class="cp">#pragma pack(pop)
+</span><span class="n">test3</span> <span class="n">t3</span><span class="p">;</span>
+</code></pre></div></div>
+
+<p><code class="highlighter-rouge">sizeof(t3) = 5</code></p>
+
+<p>省略<code class="highlighter-rouge">X</code>时，<code class="highlighter-rouge">pack(push)</code>操作无效</p>
+
+<p>下面提供关于<code class="highlighter-rouge">packed</code>和<code class="highlighter-rouge">aligned</code>的测试数据：</p>
+
+<h3 id="第一组">第一组</h3>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span> <span class="n">st</span> <span class="p">{</span>
+  <span class="kt">char</span> <span class="n">a</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">b</span><span class="p">;</span>
+  <span class="kt">char</span> <span class="n">c</span><span class="p">;</span>
+<span class="p">};</span>
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: center">Aligned</th>
+      <th style="text-align: center">1</th>
+      <th style="text-align: center">2</th>
+      <th style="text-align: center">4</th>
+      <th style="text-align: center">8</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: center">Packed</td>
+      <td style="text-align: center">6</td>
+      <td style="text-align: center">6</td>
+      <td style="text-align: center">8</td>
+      <td style="text-align: center">8</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">Unpacked</td>
+      <td style="text-align: center">12</td>
+      <td style="text-align: center">12</td>
+      <td style="text-align: center">12</td>
+      <td style="text-align: center">16</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="第二组">第二组</h3>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span> <span class="n">st</span> <span class="p">{</span>
+  <span class="kt">char</span> <span class="n">a</span><span class="p">;</span>
+  <span class="kt">double</span> <span class="n">b</span><span class="p">;</span>
+  <span class="kt">char</span> <span class="n">c</span><span class="p">;</span>
+<span class="p">};</span>
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: center">Aligned</th>
+      <th style="text-align: center">1</th>
+      <th style="text-align: center">2</th>
+      <th style="text-align: center">4</th>
+      <th style="text-align: center">8</th>
+      <th style="text-align: center">16</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: center">Packed</td>
+      <td style="text-align: center">10</td>
+      <td style="text-align: center">10</td>
+      <td style="text-align: center">12</td>
+      <td style="text-align: center">16</td>
+      <td style="text-align: center">16</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">Unpacked</td>
+      <td style="text-align: center">24</td>
+      <td style="text-align: center">24</td>
+      <td style="text-align: center">24</td>
+      <td style="text-align: center">24</td>
+      <td style="text-align: center">32</td>
+    </tr>
+  </tbody>
+</table>
+
+    </article>
+
+    
+    <div class="social-share-wrapper">
+      <div class="social-share"></div>
+    </div>
+    
+  </div>
+
+  <section class="author-detail">
+    <section class="post-footer-item author-card">
+      <div class="avatar">
+        <img src="https://xinrea.net/assets/img/profile.png" alt="">
+      </div>
+      <div class="author-name" rel="author">黄涵</div>
+      <div class="bio">
+        <p>拖延症晚期患者，兴趣广泛，但无一精通。      对该博客内容有任何疑问，请邮件联系me@xinrea.com</p>
+      </div>
+      
+      <ul class="sns-links">
+        
+        <li>
+          <a href="//github.com/Xinrea" target="_blank">
+                    <i class="iconfont icon-github"></i>
+                </a>
+        </li>
+        
+      </ul>
+      
+    </section>
+    <section class="post-footer-item read-next">
+      
+      <div class="read-next-item">
+        <a href="/2018/08/01/singleton.html" class="read-next-link"></a>
+        <section>
+          <span>设计模式 - 单例模式</span>
+          <p>静态成员方式</p>
+        </section>
+        
+     </div>
+      
+
+      
+      <div class="read-next-item">
+        <a href="/2018/07/27/Google-File-System.html" class="read-next-link"></a>
+          <section>
+            <span>Google File System 学习01</span>
+            <p>1 介绍</p>
+          </section>
+          
+      </div>
+      
+    </section>
+    <section class="post-footer-item comment">
+      <div id="disqus_thread"></div>
+    </section>
+  </section>
+
+  <footer class="g-footer">
+  <section>Xinrea的个人博客 ©
+  
+  
+    2017
+    -
+  
+  2018
+  </section>
+  <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+</footer>
+
+
+  <script src="/assets/js/social-share.min.js"></script>
+  <script>
+    socialShare('.social-share', {
+      sites: [
+        
+          'wechat'
+          ,
+          
+        
+          'weibo'
+          ,
+          
+        
+          'douban'
+          ,
+          
+        
+          'twitter'
+          
+        
+      ],
+      wechatQrcodeTitle: "分享到微信朋友圈",
+      wechatQrcodeHelper: '<p>扫码后点击右上角</p><p>将本文分享至朋友圈</p>'
+    });
+  </script>
+
+  
+
+  <script src="/assets/js/prism.js"></script>
+  <script src="/assets/js/index.min.js"></script>
+</body>
+
+</html>

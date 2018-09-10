@@ -2,7 +2,7 @@
 layout: post
 title: "FinalFantasyXIV 内存数据的读取（1）"
 date:   2017-09-20 8:00:00 +0800
-categories: windows c++ memory
+tags: windows c++ memory
 ---
 
 前几天突发奇想，想通过模拟按键的方式来操作ffxiv，以实现类似于电影拍摄中的视角移动，为广大游戏视频制作者提供帮助。  

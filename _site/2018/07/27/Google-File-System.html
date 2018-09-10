@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>linux下 fork()函数的使用 - Xinrea的个人博客</title>
+    <title>Google File System 学习01 - Xinrea的个人博客</title>
     <meta name="author"  content="黄涵">
-    <meta name="description" content="linux下 fork()函数的使用">
-    <meta name="keywords"  content="linux, learn">
+    <meta name="description" content="Google File System 学习01">
+    <meta name="keywords"  content="google, filesystem, distributed-system">
     <!-- Open Graph -->
-    <meta property="og:title" content="linux下 fork()函数的使用 - Xinrea的个人博客">
+    <meta property="og:title" content="Google File System 学习01 - Xinrea的个人博客">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://xinrea.net/2017/09/17/linux-learn-fork.html">
+    <meta property="og:url" content="https://xinrea.net/2018/07/27/Google-File-System.html">
     <meta property="og:description" content="C++/Python/Java - Game/Music/Animation">
     <meta property="og:site_name" content="Xinrea的个人博客">
     <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
@@ -113,16 +113,18 @@ Author: Ray-Eldath
       <div class="post-tags">
         
           
-            <a href="https://xinrea.net/tags#linux" class="post-tag">linux</a>
+            <a href="https://xinrea.net/tags#google" class="post-tag">google</a>
           
-            <a href="https://xinrea.net/tags#learn" class="post-tag">learn</a>
+            <a href="https://xinrea.net/tags#filesystem" class="post-tag">filesystem</a>
+          
+            <a href="https://xinrea.net/tags#distributed-system" class="post-tag">distributed-system</a>
           
         
       </div>
-      <h1>linux下 fork()函数的使用</h1>
+      <h1>Google File System 学习01</h1>
       <div class="post-meta">
         <span class="post-meta-item"><i class="iconfont icon-author"></i><a href="https://xinrea.net" target="_blank" rel="author">黄涵</a></></span>
-        <time class="post-meta-item" datetime="17-09-17"><i class="iconfont icon-date"></i>17 Sep 2017</time>
+        <time class="post-meta-item" datetime="18-07-27"><i class="iconfont icon-date"></i>27 Jul 2018</time>
       </div>
     </div>
     
@@ -132,47 +134,114 @@ Author: Ray-Eldath
     
 
     <article class="markdown-body">
-      <h3 id="fork函数">fork()函数</h3>
-
-<blockquote>
-  <p>使用需添加头文件 <code class="highlighter-rouge">unistd.h</code></p>
-</blockquote>
-
-<p>函数原型</p>
-
-<figure class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span class="n">pid_t</span> <span class="n">fork</span><span class="p">(</span><span class="kt">void</span><span class="p">);</span></code></pre></figure>
-
-<blockquote>
-  <p>pid_t为宏定义的int类型，若需使用，需<code class="highlighter-rouge">include sys/types.h</code>文件</p>
-</blockquote>
-
-<p>其返回值有三种情况：</p>
+      <h2 id="1-介绍">1 介绍</h2>
 
 <ul>
-  <li>子进程返回0</li>
-  <li>父进程返回子进程ID</li>
-  <li>出错返回-1</li>
+  <li>节点失效被看成是正常情况，而不再视为异常情况</li>
+  <li>文件都是非常巨大的</li>
+  <li>大部分文件都只会在文件尾新增数据</li>
+  <li>与应用一起设计文件系统API</li>
 </ul>
 
-<h3 id="简单使用情景">简单使用情景</h3>
+<h2 id="2-设计概览">2 设计概览</h2>
 
-<figure class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="n">fork</span><span class="p">()){</span>
-	<span class="n">statement1</span><span class="p">;</span>
-<span class="p">}</span>
-<span class="k">else</span><span class="p">{</span>
-	<span class="n">statement2</span><span class="p">;</span>
-<span class="p">}</span></code></pre></figure>
+<h3 id="21-约定">2.1 约定</h3>
 
-<p>由返回值的情况可以知道，父进程中执行<code class="highlighter-rouge">statement2</code>，子进程中执行<code class="highlighter-rouge">statement1</code>，两段代码可以“看作”在fork()之后，同时开始运行，但是实际顺序无法确定，请不要在竞争情景下使用。注意，fork()函数新建了进程来完成分支。</p>
+<ul>
+  <li>系统是建立在大量廉价的计算机上，故障经常发生在这些计算机上</li>
+  <li>系统储存了许多超大文件，系统对超大文件管理进行特殊优化，支持小文件的管理</li>
+  <li>一般需要应对两类读取：大的流式读取和小规模的随机读取，随机读取可以在应用里进行优化，将对需读取的内容进行排序，以确保单向顺序读取，提高读取效率</li>
+  <li>明确对多客户端并行操作同一个文件的支持</li>
+  <li>高性能的稳定带宽比低延迟更加重要</li>
+</ul>
 
-<p>子进程在被创建时，会获得父进程数据空间、堆、栈等资源的副本。在CPU眼里，CPU每次任务只是读取上下文数据，进行处理，保存上下文数据，因而fork()产生的进程并非同时在进行，而是在两者之间不断的切换。</p>
+<h3 id="22-接口">2.2 接口</h3>
 
-<p>相比于多线程来说，切换进程时，CPU读取和保存上下文数据比切换线程时可能消耗资源更多，切换线程时由于仍在同一进程下，在很多方面具有优势。</p>
+<ul>
+  <li>常见的文件操作：create, delete, open, close, read, write等</li>
+  <li>snapshot, record append等</li>
+</ul>
 
-<p>使用fork()可以简单完成很多需要并行处理的操作，比如TCP连接中报文的发送和接收。</p>
+<h3 id="23-架构">2.3 架构</h3>
 
-<p>如果有任何问题，欢迎通过邮箱或者私信的方式与我联系。</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>master ---- chunkserver01
+     \----- chunkserver02
+      \---- chunkserver03
+       ...
+</code></pre></div></div>
 
+<ul>
+  <li>集群由一个master和多个chunkserver组成</li>
+  <li>集群会被许多client同时访问</li>
+  <li>节点都只是普通的linux PC</li>
+  <li>文件都被拆分为固定大小的chunk</li>
+  <li>master根据chunk产生的时间，生成永久不变的64位chunk handle标志</li>
+  <li>chunkserver上简单的使用LinuxFileSystem来管理块</li>
+  <li>块在不同的chunkserver上有备份</li>
+  <li>master只保留元数据</li>
+  <li>client只缓存元数据</li>
+  <li>master与chunkserver使用心跳线通讯，传递信息以及查询状态</li>
+  <li>client在master获取元数据后，后续数据的通讯直接与chunkserver进行</li>
+</ul>
+
+<h3 id="24-单个master">2.4 单个master</h3>
+
+<ul>
+  <li>尽量减少master的读写，避免成为瓶颈</li>
+</ul>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>client: offset-&gt;trunk index (chunk size固定)
+client--------filename,index---------&gt;master (可以设置获得多个chunk的信息)
+client&lt;-------handle,location---------master (返回的chunk信息会被cache)
+client--------handle,byte range------&gt;chunkserver (使用location来与其建立连接)
+client&lt;-------data--------------------chunkserver
+</code></pre></div></div>
+
+<h3 id="25-chunk块大小">2.5 chunk块大小</h3>
+
+<ul>
+  <li>设置为64M</li>
+  <li>减少了元数据大小，可直接保存在master的内存中</li>
+  <li>焦点问题：小文件只有1个chunk，多客户端同时访问时，保存这个chunk的chunkserver们成为焦点；对于大文件则没有这个问题，大文件拥有非常多的chunk，每个chunk保存的位置各不相同。在batch-queue(job-queue)下使用GFS时，worker启动时加载可执行程序会导致焦点问题，可以通过增加程序副本数量、错开worker启动时间来解决；永久解决方案：客户端能够互相读取数据。</li>
+</ul>
+
+<h3 id="26-元数据">2.6 元数据</h3>
+
+<p>主要包含以下三种类型的数据：</p>
+<ul>
+  <li>file和chunk的namespace</li>
+  <li>文件到chunk的映射关系</li>
+  <li>chunk副本的位置</li>
+</ul>
+
+<p>前两种类型的数据变化记录在master磁盘上的operation log中，log会在远端机器上保留副本。第三种类型的数据在master启动或者chunkserver加入集群时，向chunkserver询问获得。</p>
+
+<h4 id="261-内存数据结构">2.6.1 内存数据结构</h4>
+
+<p>定时内部状态扫描：</p>
+<ul>
+  <li>GC</li>
+  <li>chunkserver失效，chunk镜像</li>
+  <li>负载均衡，chunk镜像</li>
+</ul>
+
+<p>每个chunk(64M)对应的元数据小于64byte，文件的namespace使用前缀压缩，通常也小于64byte。对应比例：1:10000，即16GB内存可以支持160TB的数据。</p>
+
+<h4 id="262-chunk的位置">2.6.2 chunk的位置</h4>
+
+<p>启动时从chunkserver获得所需的信息，在此之后，由于所有的修改操作都需经过master进行，因此master上的信息必定是最新的。</p>
+
+<h4 id="263-操作记录">2.6.3 操作记录</h4>
+
+<p>类似于Mysql的增量备份模式，checkpoint是一个类似B-树的格式，可以直接映射到内存。</p>
+
+<h3 id="27-一致性模型">2.7 一致性模型</h3>
+
+<p>一致性：经过修改后，clients看到的数据都是相同的</p>
+
+<p>确定性：经过修改后，clients看到的数据都是相同的，并且能够知道每次修改的内容</p>
+
+<p>并行写时，修改的内容以碎片的形式夹杂在一起，因此是不确定的</p>
 
     </article>
 
@@ -207,10 +276,10 @@ Author: Ray-Eldath
     <section class="post-footer-item read-next">
       
       <div class="read-next-item">
-        <a href="/2017/09/20/ffxiv-memory-read.html" class="read-next-link"></a>
+        <a href="/2018/08/01/Data-Structure-Alignment.html" class="read-next-link"></a>
         <section>
-          <span>FinalFantasyXIV 内存数据的读取（1）</span>
-          <p>前几天突发奇想，想通过模拟按键的方式来操作ffxiv，以实现类似于电影拍摄中的视角移动，为广大游戏视频制作者提供帮...</p>
+          <span>结构体的数据对齐问题</span>
+          <p>  以下方法均为GCC扩展方法</p>
         </section>
         
      </div>
@@ -218,10 +287,10 @@ Author: Ray-Eldath
 
       
       <div class="read-next-item">
-        <a href="/2017/09/17/network-note-1.html" class="read-next-link"></a>
+        <a href="/2018/07/25/android-logger.html" class="read-next-link"></a>
           <section>
-            <span>储存转发传输 - 传输时间计算</span>
-            <p>计算机网络储存转发传输 - 传输时间计算  传播时延不予考虑由N条速率均为R的链路组成的路径, 从源到目的地发送一...</p>
+            <span>Android Logger源码分析</span>
+            <p>(Removed in Android Lollipop)</p>
           </section>
           
       </div>

@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Java模块解耦 - Xinrea的个人博客</title>
+    <meta name="author"  content="黄涵">
+    <meta name="description" content="Java模块解耦">
+    <meta name="keywords"  content="java, decouple">
+    <!-- Open Graph -->
+    <meta property="og:title" content="Java模块解耦 - Xinrea的个人博客">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://xinrea.net/2018/08/14/Java-Decoupling.html">
+    <meta property="og:description" content="C++/Python/Java - Game/Music/Animation">
+    <meta property="og:site_name" content="Xinrea的个人博客">
+    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
+    <link rel="stylesheet" href="/assets/css/github-markdown.css">
+    <link rel="stylesheet" href="/assets/css/prism.css">
+    <link rel="stylesheet" href="/assets/css/share.min.css">
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+	
+	<!--
+Author: Ray-Eldath
+refer to:
+ - http://docs.mathjax.org/en/latest/options/index.html
+-->
+
+	<script type="text/javascript" async src="https://cdn.bootcss.com/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+	
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+		jax: ["input/TeX", "output/HTML-CSS"],
+		tex2jax: {
+			inlineMath: [ ["$", "$"] ],
+			displayMath: [ ["$$", "$$"] ],
+			skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+		},
+		"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"] }
+      });
+    </script>
+
+	
+    <!--
+Author: Ray-Eldath
+-->
+<style>
+    .markdown-body .anchor{
+        float: left;
+        margin-top: -8px;
+        margin-left: -20px;
+        padding-right: 4px;
+        line-height: 1;
+        opacity: 0;
+    }
+    
+    .markdown-body .anchor .anchor-icon{
+        font-size: 15px
+    }
+</style>
+<script>
+    $(document).ready(function() {
+        let nodes = document.querySelector(".markdown-body").querySelectorAll("h1,h2,h3")
+        for(let node of nodes) {
+            var anchor = document.createElement("a")
+            var anchorIcon = document.createElement("i")
+            anchorIcon.setAttribute("class", "fa fa-anchor fa-lg anchor-icon")
+            anchorIcon.setAttribute("aria-hidden", true)
+            anchor.setAttribute("class", "anchor")
+            anchor.setAttribute("href", "#" + node.getAttribute("id"))
+            
+            anchor.onmouseover = function() {
+                this.style.opacity = "0.4"
+            }
+            
+            anchor.onmouseout = function() {
+                this.style.opacity = "0"
+            }
+            
+            anchor.appendChild(anchorIcon)
+            node.appendChild(anchor)
+        }
+    })
+</script>
+</head>
+
+
+<body>
+  <!--[if lt IE 10]>
+<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+<![endif]-->
+  <input id="nm-switch" type="hidden" value="false"> <header class="g-header">
+    <div class="g-logo">
+      <a href="/"></a>
+    </div>
+    <i id="menu-toggle" class="iconfont icon-menu"></i>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="/tags.html">tags</a></li>
+            
+        </ul>
+    </nav>
+</header>
+
+
+  <header class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover" data-theme="default">
+    <div class="post-wrapper">
+      <div class="post-tags">
+        
+          
+            <a href="https://xinrea.net/tags#java" class="post-tag">java</a>
+          
+            <a href="https://xinrea.net/tags#decouple" class="post-tag">decouple</a>
+          
+        
+      </div>
+      <h1>Java模块解耦</h1>
+      <div class="post-meta">
+        <span class="post-meta-item"><i class="iconfont icon-author"></i><a href="https://xinrea.net" target="_blank" rel="author">黄涵</a></></span>
+        <time class="post-meta-item" datetime="18-08-14"><i class="iconfont icon-date"></i>14 Aug 2018</time>
+      </div>
+    </div>
+    
+  </header>
+
+  <div class="post-content visible">
+    
+
+    <article class="markdown-body">
+      <h2 id="步骤一-解决简单耦合">步骤一 解决简单耦合</h2>
+
+<h3 id="类型一">类型一</h3>
+
+<p>对于与对象状态无关的方法，可以直接将该方法本地化，解除耦合，例如：</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">A</span> <span class="p">{</span>
+  <span class="n">B</span> <span class="n">b</span><span class="p">;</span>
+<span class="p">...</span>
+  <span class="n">aMethod</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="n">b</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">);</span>  
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">class</span> <span class="nc">B</span> <span class="p">{</span>
+<span class="p">...</span>
+  <span class="n">add</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="n">a</span><span class="o">+</span><span class="n">b</span><span class="p">;</span> 
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>可见<code class="highlighter-rouge">B.add()</code>方法只是完成了简单单一的功能，与类B的对象状态无关，因此可以将其本地化，直接代替原来的调用，以达到解耦的目的。解耦后如下所示:</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">A</span> <span class="p">{</span>
+<span class="p">...</span>
+  <span class="n">aMethod</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="mi">1</span><span class="o">+</span><span class="mi">2</span><span class="p">;</span>  
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h3 id="类型二">类型二</h3>
+
+<p>调用位置在代码段末尾，而且改调用与自身状态无关，例如：</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">A</span> <span class="p">{</span>
+  <span class="n">B</span> <span class="n">b</span><span class="p">;</span>
+  <span class="n">aMethod</span><span class="p">(){</span>
+    <span class="n">dosomething</span><span class="p">();</span>
+    <span class="n">b</span><span class="p">.</span><span class="n">inc</span><span class="p">();</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">class</span> <span class="nc">B</span> <span class="p">{</span>
+  <span class="k">static</span> <span class="kt">int</span> <span class="n">m</span><span class="p">;</span>
+  <span class="n">inc</span><span class="p">(){</span>
+    <span class="n">m</span><span class="o">++</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">class</span> <span class="nc">C</span><span class="p">{</span>
+  <span class="n">A</span> <span class="n">a</span><span class="p">;</span>
+  <span class="n">cMethod</span><span class="p">(){</span>
+    <span class="n">a</span><span class="p">.</span><span class="n">Method</span><span class="p">();</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>由于<code class="highlighter-rouge">B.inc()</code>涉及到B的状态<code class="highlighter-rouge">int m</code>，无法直接本地化到A中，但是该方法与A的状态无关，因此可以查找使用了<code class="highlighter-rouge">aMethod</code>的地方，例如类C中的<code class="highlighter-rouge">cMethod()</code>方法中调用了<code class="highlighter-rouge">aMethod()</code>，我们可以将<code class="highlighter-rouge">b.inc()</code>提到<code class="highlighter-rouge">aMethod()</code>方法外，例如：</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">A</span> <span class="p">{</span>
+  <span class="n">aMethod</span><span class="p">(){</span>
+    <span class="n">dosomething</span><span class="p">();</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">class</span> <span class="nc">C</span><span class="p">{</span>
+  <span class="n">A</span> <span class="n">a</span><span class="p">;</span>
+  <span class="n">B</span> <span class="n">b</span><span class="p">;</span>
+  <span class="n">cMethod</span><span class="p">(){</span>
+    <span class="n">a</span><span class="p">.</span><span class="n">Method</span><span class="p">();</span>
+    <span class="n">b</span><span class="p">.</span><span class="n">inc</span><span class="p">();</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>可见修改后，类A已经不依赖与类B。</p>
+
+<h2 id="步骤二-设计接口和工厂类">步骤二 设计接口和工厂类</h2>
+
+<p>对于简单解耦无法完成的工作，就需要设计接口和工厂类来进行解耦了，这种方法简单粗暴，使用Java的反射机制来达到解耦的效果。
+例如，有许多模块对模块A有引用，为了解决这种直接的耦合关系，需要为类A设计接口和工厂类。</p>
+
+<p>查找类A中哪些方法被外部所使用，将其提取到IA接口类中，类A设置为implement IA；
+实现一个类AFake，同样implement IA，这是当类A未定义时，默认使用的类。</p>
+
+<p>接下来便是实现工厂类AFactory，结合Java的反射机制实现隔离，简单样例如下所示：</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">//IA.java</span>
+<span class="kn">package</span> <span class="n">com</span><span class="o">.</span><span class="na">test</span><span class="o">.</span><span class="na">decouple</span><span class="o">;</span>
+<span class="kd">public</span> <span class="kd">interface</span> <span class="nc">IA</span> <span class="o">{</span>
+  <span class="kt">boolean</span> <span class="nf">method</span><span class="o">();</span>
+<span class="o">}</span>
+
+<span class="c1">//A.java</span>
+<span class="kn">package</span> <span class="n">com</span><span class="o">.</span><span class="na">test</span><span class="o">.</span><span class="na">decouple</span><span class="o">;</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">A</span> <span class="kd">implements</span> <span class="n">IA</span> <span class="o">{</span>
+  <span class="kd">public</span> <span class="kt">boolean</span> <span class="nf">method</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="kc">true</span><span class="o">;</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="c1">//AFake.java</span>
+<span class="kn">package</span> <span class="n">com</span><span class="o">.</span><span class="na">test</span><span class="o">.</span><span class="na">decouple</span><span class="o">;</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">AFake</span> <span class="kd">implements</span> <span class="n">IA</span> <span class="o">{</span>
+  <span class="kd">public</span> <span class="kt">boolean</span> <span class="nf">method</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="kc">false</span><span class="o">;</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="c1">//AFactory.java</span>
+<span class="kn">package</span> <span class="n">com</span><span class="o">.</span><span class="na">test</span><span class="o">.</span><span class="na">decouple</span><span class="o">;</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">AFactory</span> <span class="o">{</span>
+  <span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="n">A</span> <span class="o">=</span> <span class="s">"com.test.decouple.A"</span><span class="o">;</span>
+  <span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="n">AFake</span> <span class="o">=</span> <span class="s">"com.test.decouple.AFake"</span><span class="o">;</span>
+  <span class="kd">public</span> <span class="kd">static</span> <span class="n">IA</span> <span class="nf">getInstance</span><span class="o">()</span> <span class="o">{</span>
+    <span class="n">Class</span><span class="o">&lt;</span><span class="n">IA</span><span class="o">&gt;</span> <span class="n">mClass</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+    <span class="n">IA</span> <span class="n">mInst</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+    <span class="k">try</span> <span class="o">{</span>
+      <span class="n">mClass</span> <span class="o">=</span> <span class="o">(</span><span class="n">Class</span><span class="o">&lt;</span><span class="n">IA</span><span class="o">&gt;)</span><span class="n">Class</span><span class="o">.</span><span class="na">forName</span><span class="o">(</span><span class="n">A</span><span class="o">);</span>
+    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">ClassNotFoundException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">try</span> <span class="o">{</span>
+        <span class="n">mClass</span> <span class="o">=</span> <span class="o">(</span><span class="n">Class</span><span class="o">&lt;</span><span class="n">IA</span><span class="o">&gt;)</span><span class="n">Class</span><span class="o">.</span><span class="na">forName</span><span class="o">(</span><span class="n">AFake</span><span class="o">);</span>
+      <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">ClassNotFoundException</span> <span class="n">e2</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">e2</span><span class="o">.</span><span class="na">printStackTrace</span><span class="o">();</span> 
+      <span class="o">}</span>
+    <span class="o">}</span>
+    <span class="n">mInst</span> <span class="o">=</span> <span class="n">mClass</span><span class="o">.</span><span class="na">newInstance</span><span class="o">();</span>
+    <span class="k">return</span> <span class="n">mInst</span><span class="o">;</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>工厂类AFactory中，使用反射来使用类A，当查找不到类A时，转而使用类AFake，确保不会出错。这样进行处理后，工厂类AFactory会根据类A存在与否来选择实例化的方式。替换掉所有使用了<code class="highlighter-rouge">method()</code>方法的地方后，外部就不再依赖于类A了，这样就达到了单方向完全解耦的效果。</p>
+
+    </article>
+
+    
+    <div class="social-share-wrapper">
+      <div class="social-share"></div>
+    </div>
+    
+  </div>
+
+  <section class="author-detail">
+    <section class="post-footer-item author-card">
+      <div class="avatar">
+        <img src="https://xinrea.net/assets/img/profile.png" alt="">
+      </div>
+      <div class="author-name" rel="author">黄涵</div>
+      <div class="bio">
+        <p>拖延症晚期患者，兴趣广泛，但无一精通。      对该博客内容有任何疑问，请邮件联系me@xinrea.com</p>
+      </div>
+      
+      <ul class="sns-links">
+        
+        <li>
+          <a href="//github.com/Xinrea" target="_blank">
+                    <i class="iconfont icon-github"></i>
+                </a>
+        </li>
+        
+      </ul>
+      
+    </section>
+    <section class="post-footer-item read-next">
+      
+
+      
+      <div class="read-next-item">
+        <a href="/2018/08/01/singleton.html" class="read-next-link"></a>
+          <section>
+            <span>设计模式 - 单例模式</span>
+            <p>静态成员方式</p>
+          </section>
+          
+      </div>
+      
+    </section>
+    <section class="post-footer-item comment">
+      <div id="disqus_thread"></div>
+    </section>
+  </section>
+
+  <footer class="g-footer">
+  <section>Xinrea的个人博客 ©
+  
+  
+    2017
+    -
+  
+  2018
+  </section>
+  <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+</footer>
+
+
+  <script src="/assets/js/social-share.min.js"></script>
+  <script>
+    socialShare('.social-share', {
+      sites: [
+        
+          'wechat'
+          ,
+          
+        
+          'weibo'
+          ,
+          
+        
+          'douban'
+          ,
+          
+        
+          'twitter'
+          
+        
+      ],
+      wechatQrcodeTitle: "分享到微信朋友圈",
+      wechatQrcodeHelper: '<p>扫码后点击右上角</p><p>将本文分享至朋友圈</p>'
+    });
+  </script>
+
+  
+
+  <script src="/assets/js/prism.js"></script>
+  <script src="/assets/js/index.min.js"></script>
+</body>
+
+</html>

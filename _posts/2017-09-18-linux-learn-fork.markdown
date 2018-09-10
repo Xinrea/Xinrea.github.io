@@ -2,7 +2,7 @@
 layout: post
 title:  "linux下 fork()函数的使用"
 date:   2017-09-17 20:43:00 +0800
-categories: linux learn
+tags: linux learn
 ---
 
 ### fork()函数 ###
@@ -11,7 +11,7 @@ categories: linux learn
 
 函数原型
 
-{% highlight c %}
+{% highlight cpp %}
 pid_t fork(void);
 {% endhighlight %}
 
@@ -25,7 +25,7 @@ pid_t fork(void);
 
 ### 简单使用情景 ###
 
-{% highlight c %}
+{% highlight cpp %}
 if(!fork()){
 	statement1;
 }

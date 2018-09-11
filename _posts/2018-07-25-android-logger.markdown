@@ -3,6 +3,7 @@ layout: post
 title: "Android Logger源码分析"
 date: 2018-07-25
 tags: android learn c
+cover: '/assets/default-android.png'
 ---
 (Removed in Android Lollipop)
 

@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>[计算机图形学]Points和Vectors的变换 - Xinrea的个人博客</title>
+    <meta name="author"  content="黄涵">
+    <meta name="description" content="[计算机图形学]Points和Vectors的变换">
+    <meta name="keywords"  content="Computer-Graphics">
+    <!-- Open Graph -->
+    <meta property="og:title" content="[计算机图形学]Points和Vectors的变换 - Xinrea的个人博客">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://xinrea.net/2018/09/29/Transforming-points-and-vectors.html">
+    <meta property="og:description" content="C++/Python/Java - Game/Music/Animation">
+    <meta property="og:site_name" content="Xinrea的个人博客">
+    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
+    <link rel="stylesheet" href="/assets/css/github-markdown.css">
+    <link rel="stylesheet" href="/assets/css/prism.css">
+    <link rel="stylesheet" href="/assets/css/share.min.css">
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+	
+	<!--
+Author: Ray-Eldath
+refer to:
+ - http://docs.mathjax.org/en/latest/options/index.html
+-->
+
+	<script type="text/javascript" async src="https://cdn.bootcss.com/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+	
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+		jax: ["input/TeX", "output/HTML-CSS"],
+		tex2jax: {
+			inlineMath: [ ["$", "$"] ],
+			displayMath: [ ["$$", "$$"] ],
+			skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+		},
+		"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"] }
+      });
+    </script>
+
+	
+    <!--
+Author: Ray-Eldath
+-->
+<style>
+    .markdown-body .anchor{
+        float: left;
+        margin-top: -8px;
+        margin-left: -20px;
+        padding-right: 4px;
+        line-height: 1;
+        opacity: 0;
+    }
+    
+    .markdown-body .anchor .anchor-icon{
+        font-size: 15px
+    }
+</style>
+<script>
+    $(document).ready(function() {
+        let nodes = document.querySelector(".markdown-body").querySelectorAll("h1,h2,h3")
+        for(let node of nodes) {
+            var anchor = document.createElement("a")
+            var anchorIcon = document.createElement("i")
+            anchorIcon.setAttribute("class", "fa fa-anchor fa-lg anchor-icon")
+            anchorIcon.setAttribute("aria-hidden", true)
+            anchor.setAttribute("class", "anchor")
+            anchor.setAttribute("href", "#" + node.getAttribute("id"))
+            
+            anchor.onmouseover = function() {
+                this.style.opacity = "0.4"
+            }
+            
+            anchor.onmouseout = function() {
+                this.style.opacity = "0"
+            }
+            
+            anchor.appendChild(anchorIcon)
+            node.appendChild(anchor)
+        }
+    })
+</script>
+</head>
+
+
+<body>
+  <!--[if lt IE 10]>
+<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+<![endif]-->
+  <input id="nm-switch" type="hidden" value="false"> <header class="g-header">
+    <div class="g-logo">
+      <a href="/"></a>
+    </div>
+    <i id="menu-toggle" class="iconfont icon-menu"></i>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="/tags.html">tags</a></li>
+            
+        </ul>
+    </nav>
+</header>
+
+
+  <header class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover" data-theme="default">
+    <div class="post-wrapper">
+      <div class="post-tags">
+        
+          
+            <a href="https://xinrea.net/tags#Computer-Graphics" class="post-tag">Computer-Graphics</a>
+          
+        
+      </div>
+      <h1>[计算机图形学]Points和Vectors的变换</h1>
+      <div class="post-meta">
+        <span class="post-meta-item"><i class="iconfont icon-author"></i><a href="https://xinrea.net" target="_blank" rel="author">黄涵</a></></span>
+        <time class="post-meta-item" datetime="18-09-29"><i class="iconfont icon-date"></i>29 Sep 2018</time>
+      </div>
+    </div>
+    
+  </header>
+
+  <div class="post-content visible">
+    
+
+    <article class="markdown-body">
+      <p>Points和Vectors均采用1x3的矩阵来表示，Points和Vectors的区别在于，Points具有绝对的位置，因此可以进行平移变换，也可以绕某点进行旋转变换；Vectors指示了方向，平移变换并不改变其方向，因此不存在平移变换。</p>
+
+<p>通过构建合适的矩阵，将1x3矩阵与3x3矩阵相乘，即可得到目标结果，而所构建的用于产生变换的3x3矩阵即为变换矩阵。</p>
+
+<script type="math/tex; mode=display">% <![CDATA[
+\begin{bmatrix}x & y & z\end{bmatrix} *
+\begin{bmatrix}
+c_{00}&c_{01}&{c_{02}}\\
+c_{10}&c_{11}&{c_{12}}\\
+c_{20}&c_{21}&{c_{22}}\\
+\end{bmatrix} %]]></script>
+
+<h2 id="单位矩阵-the-identity-matrix">单位矩阵 （The Identity Matrix）</h2>
+
+<p>对于下面的这个特殊的矩阵（单位矩阵 - Identity Matrix）来说，运算未产生任何变换。</p>
+
+<script type="math/tex; mode=display">% <![CDATA[
+\begin{bmatrix}
+\color{red}{1} & 0 & 0 \\
+0 & \color{red}{1} & 0 \\
+0 & 0 & \color{red}{1}
+\end{bmatrix} %]]></script>
+
+<p>运算如下所示：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Ptransformed.x = P.x * 1 + P.y * 0 + P.z * 0 = P.x 
+Ptransformed.y = P.x * 0 + P.y * 1 + P.z * 0 = P.y 
+Ptransformed.z = P.x * 0 + P.y * 0 + P.z * 1 = P.z 
+</code></pre></div></div>
+
+<p>结果是<code class="highlighter-rouge">Ptransformed = P</code>。</p>
+
+<h2 id="缩放矩阵-the-scaling-matrix">缩放矩阵 （The Scaling Matrix）</h2>
+
+<p>从单位矩阵的运算结果中已经可以看出对角线上的系数（coefficients）对结果的影响了，稍作修改，即可得到缩放矩阵。</p>
+
+<script type="math/tex; mode=display">% <![CDATA[
+\begin{bmatrix}
+\color{red}{c_{0}} & 0 & 0 \\
+0 & \color{red}{c_{1}} & 0 \\
+0 & 0 & \color{red}{c_{2}}
+\end{bmatrix} %]]></script>
+
+<h2 id="旋转矩阵-the-rotation-matrix">旋转矩阵 （The Rotation Matrix）</h2>
+
+<p><img src="http://www.scratchapixel.com/images/upload/geometry/unitcircle.png?" alt="旋转矩阵分析" /></p>
+
+<p>通过上图，我们来分析在旋转变换下，x、y、z会发生怎样的变化。假设横轴为x，纵轴为y，也就是说以z为轴进行旋转。</p>
+
+<p>显然有以下结果：</p>
+
+<script type="math/tex; mode=display">l = \sqrt{x^{2}+y^{2}}\\
+x = cosθ*l\\
+y = sinθ*l\\</script>
+
+<p>则有：</p>
+
+<script type="math/tex; mode=display">% <![CDATA[
+\begin{align}
+x'&=cos(θ+θ')*l\\
+&=l*(cosθ*cosθ'-sinθ*sinθ')\\
+&=x*cosθ'-y*sinθ'\\
+\end{align} %]]></script>
+
+<script type="math/tex; mode=display">% <![CDATA[
+\begin{align}
+y'&=sin(θ+θ')*l\\
+&=l*(sinθ*cosθ'+cosθ*sinθ')\\
+&=x*sinθ'+y*cosθ'\\
+\end{align} %]]></script>
+
+<p>这意味着，对于3x3的变换矩阵，只要控制系数c使得相乘结果与上述一致，即完成了旋转操作。对于绕z轴旋转的操作，可由以下变换矩阵实现。</p>
+
+<script type="math/tex; mode=display">% <![CDATA[
+R_{z}(θ’)=
+\begin{bmatrix}
+cosθ' & sinθ' & 0\\
+-sinθ' & cosθ' & 0\\
+0 & 0 & 1
+\end{bmatrix} %]]></script>
+
+<p>同理，还可以得到绕x或y旋转所需的变换矩阵形式：</p>
+
+<script type="math/tex; mode=display">% <![CDATA[
+R_x(\theta')= \begin{bmatrix} 
+1 & 0 & 0 \\
+0 & \cos(\theta') & \sin(\theta') \\
+0 & -\sin(\theta') & \cos(\theta') \\
+\end{bmatrix} %]]></script>
+
+<script type="math/tex; mode=display">% <![CDATA[
+R_y(\theta')= \begin{bmatrix}
+\cos(\theta') & 0 & -\sin(\theta') \\
+0 & 1 &  0 \\
+\sin(\theta') & 0 & \cos(\theta') \\ 
+\end{bmatrix} %]]></script>
+
+<h3 id="所以旋转矩阵中究竟包含了什么信息">所以旋转矩阵中究竟包含了什么信息？</h3>
+
+<p>通过目标结果与初始量之间的分析，我们构造出了绕某轴旋转时的变换矩阵；这样的构造使得运算能够得到正确的结果，但是我们还没有弄清楚旋转矩阵中究竟包含了什么信息，使得其能够完成旋转变换。</p>
+
+<p>实际上，矩阵中包含了有关坐标系的信息。旋转矩阵的三行分别代表了x、y、z三个轴旋转θ’后的结果。可以这样思考：</p>
+
+<p>变换矩阵可以通过矩阵的乘法来完整多种变换的融合，若要实现旋转操作，实际上可以拆分为如下所示：</p>
+
+<script type="math/tex; mode=display">P*R=(P*I)*R=P*(I*R)</script>
+
+<p>其中，<code class="highlighter-rouge">I*R</code>即为单位矩阵旋转后所得的矩阵，而单位矩阵I的三行实际上代表了坐标系的x、y、z三轴。</p>
+
+<h2 id="旋转平移矩阵">旋转平移矩阵</h2>
+
+<p>对于Points来说，其平移操作虽然只需要矩阵的加法即可完成，但由于旋转变换使用了矩阵的乘法，为了变换的统一，即能够将旋转和平移操作合并到一个矩阵中，需要对前述的各种设定进行细微的修改，以便在旋转矩阵中加入平移变换。</p>
+
+<p>从变换的结果来看，P经过旋转和平移变换为P’，结果如下：</p>
+
+<script type="math/tex; mode=display">\begin{array}{l}
+P'.x = P.x * M_{00} + P.y * M_{10} + P.z * M_{20} + T_X\\
+P'.y = P.x * M_{01} + P.y * M_{11} + P.z * M_{21} + T_Y\\
+P'.z = P.x * M_{02} + P.y * M_{12} + P.z * M_{22} + T_Z
+\end{array}</script>
+
+<p>与旋转操作对比，只是在旋转操作完成后加上了平移的偏移值。但是为了能够在矩阵乘法过程中完成这个操作，显然3x3的矩阵是无法办到的。</p>
+
+<p>若将矩阵扩展为4x4，为了使Points能够与其相乘，因此也需要将Points的表现形式修正为1x4的矩阵，由于这个修正只是为了引入偏移量，因此默认为1。修改设定后，变换操作的过程可以表现为以下形式：</p>
+
+<script type="math/tex; mode=display">\begin{array}{l}
+P'.x = P.x * M_{00} + P.y * M_{10} + P.z * M_{20} + 1 * M_{30}\\
+P'.y = P.x * M_{01} + P.y * M_{11} + P.z * M_{21} + 1 * M_{31}\\
+P'.z = P.x * M_{02} + P.y * M_{12} + P.z * M_{22} + 1 * M_{32}\end{array}</script>
+
+<p>显然，变换后的结果应仍为Points，因此单纯地将旋转矩阵添加一行为4x3是不妥的，这也是我们如上述将矩阵直接扩展为4x4的原因。</p>
+
+<p>当然，扩展后，1x4的Points与4x4的变换矩阵相乘，结果中Points最后一位的计算如下所示：</p>
+
+<script type="math/tex; mode=display">w = P.x * M_{03} + P.y * M_{13} + P.z * M_{23} + 1 * M_{33}</script>
+
+<p>当然，为了使结果得到的w也为1，我们可以选择默认旋转平移矩阵的第4列为0001，这样使得w恒为1；也可以用这个第4列来实现新的变换，即在得到w的值后，将Points矩阵缩放使得w为1，这样使得第四列可以用于缩放变换。</p>
+
+<p>经过上述讨论后，可以得到绕z轴旋转的旋转平移缩放矩阵的形式：</p>
+
+<script type="math/tex; mode=display">% <![CDATA[
+R_{z}(θ’)=
+\begin{bmatrix}
+cosθ' & sinθ' & 0 & 0\\
+-sinθ' & cosθ' & 0 & 0\\
+0 & 0 & 1 & 0\\
+T_{x} & T_{y} & T_{z} & S
+\end{bmatrix} %]]></script>
+
+    </article>
+
+    
+    <div class="social-share-wrapper">
+      <div class="social-share"></div>
+    </div>
+    
+  </div>
+
+  <section class="author-detail">
+    <section class="post-footer-item author-card">
+      <div class="avatar">
+        <img src="https://xinrea.net/assets/img/profile.png" alt="">
+      </div>
+      <div class="author-name" rel="author">黄涵</div>
+      <div class="bio">
+        <p>拖延症晚期患者，兴趣广泛，但无一精通。      对该博客内容有任何疑问，请邮件联系me@xinrea.com</p>
+      </div>
+      
+      <ul class="sns-links">
+        
+        <li>
+          <a href="//github.com/Xinrea" target="_blank">
+                    <i class="iconfont icon-github"></i>
+                </a>
+        </li>
+        
+      </ul>
+      
+    </section>
+    <section class="post-footer-item read-next">
+      
+
+      
+      <div class="read-next-item">
+        <a href="/2018/08/14/Java-Decoupling.html" class="read-next-link"></a>
+          <section>
+            <span>Java模块解耦</span>
+            <p>步骤一 解决简单耦合</p>
+          </section>
+          
+      </div>
+      
+    </section>
+    <section class="post-footer-item comment">
+      <div id="disqus_thread"></div>
+    </section>
+  </section>
+
+  <footer class="g-footer">
+  <section>Xinrea的个人博客 ©
+  
+  
+    2017
+    -
+  
+  2018
+  </section>
+  <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+</footer>
+
+
+  <script src="/assets/js/social-share.min.js"></script>
+  <script>
+    socialShare('.social-share', {
+      sites: [
+        
+          'wechat'
+          ,
+          
+        
+          'weibo'
+          ,
+          
+        
+          'douban'
+          ,
+          
+        
+          'twitter'
+          
+        
+      ],
+      wechatQrcodeTitle: "分享到微信朋友圈",
+      wechatQrcodeHelper: '<p>扫码后点击右上角</p><p>将本文分享至朋友圈</p>'
+    });
+  </script>
+
+  
+
+  <script src="/assets/js/prism.js"></script>
+  <script src="/assets/js/index.min.js"></script>
+</body>
+
+</html>

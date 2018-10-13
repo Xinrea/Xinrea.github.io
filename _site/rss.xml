@@ -5,9 +5,169 @@
     <description>C++/Python/Java - Game/Music/Animation</description>
     <link>https://xinrea.net/</link>
     <atom:link href="https://xinrea.net/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Tue, 11 Sep 2018 23:28:48 +0800</pubDate>
-    <lastBuildDate>Tue, 11 Sep 2018 23:28:48 +0800</lastBuildDate>
+    <pubDate>Sat, 13 Oct 2018 09:06:19 +0800</pubDate>
+    <lastBuildDate>Sat, 13 Oct 2018 09:06:19 +0800</lastBuildDate>
     <generator>Jekyll v3.8.3</generator>
+    
+      <item>
+        <title>[计算机图形学]Points和Vectors的变换</title>
+        <description>&lt;p&gt;Points和Vectors均采用1x3的矩阵来表示，Points和Vectors的区别在于，Points具有绝对的位置，因此可以进行平移变换，也可以绕某点进行旋转变换；Vectors指示了方向，平移变换并不改变其方向，因此不存在平移变换。&lt;/p&gt;
+
+&lt;p&gt;通过构建合适的矩阵，将1x3矩阵与3x3矩阵相乘，即可得到目标结果，而所构建的用于产生变换的3x3矩阵即为变换矩阵。&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;% &lt;![CDATA[
+\begin{bmatrix}x &amp; y &amp; z\end{bmatrix} *
+\begin{bmatrix}
+c_{00}&amp;c_{01}&amp;{c_{02}}\\
+c_{10}&amp;c_{11}&amp;{c_{12}}\\
+c_{20}&amp;c_{21}&amp;{c_{22}}\\
+\end{bmatrix} %]]&gt;&lt;/script&gt;
+
+&lt;h2 id=&quot;单位矩阵-the-identity-matrix&quot;&gt;单位矩阵 （The Identity Matrix）&lt;/h2&gt;
+
+&lt;p&gt;对于下面的这个特殊的矩阵（单位矩阵 - Identity Matrix）来说，运算未产生任何变换。&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;% &lt;![CDATA[
+\begin{bmatrix}
+\color{red}{1} &amp; 0 &amp; 0 \\
+0 &amp; \color{red}{1} &amp; 0 \\
+0 &amp; 0 &amp; \color{red}{1}
+\end{bmatrix} %]]&gt;&lt;/script&gt;
+
+&lt;p&gt;运算如下所示：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Ptransformed.x = P.x * 1 + P.y * 0 + P.z * 0 = P.x 
+Ptransformed.y = P.x * 0 + P.y * 1 + P.z * 0 = P.y 
+Ptransformed.z = P.x * 0 + P.y * 0 + P.z * 1 = P.z 
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;结果是&lt;code class=&quot;highlighter-rouge&quot;&gt;Ptransformed = P&lt;/code&gt;。&lt;/p&gt;
+
+&lt;h2 id=&quot;缩放矩阵-the-scaling-matrix&quot;&gt;缩放矩阵 （The Scaling Matrix）&lt;/h2&gt;
+
+&lt;p&gt;从单位矩阵的运算结果中已经可以看出对角线上的系数（coefficients）对结果的影响了，稍作修改，即可得到缩放矩阵。&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;% &lt;![CDATA[
+\begin{bmatrix}
+\color{red}{c_{0}} &amp; 0 &amp; 0 \\
+0 &amp; \color{red}{c_{1}} &amp; 0 \\
+0 &amp; 0 &amp; \color{red}{c_{2}}
+\end{bmatrix} %]]&gt;&lt;/script&gt;
+
+&lt;h2 id=&quot;旋转矩阵-the-rotation-matrix&quot;&gt;旋转矩阵 （The Rotation Matrix）&lt;/h2&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://www.scratchapixel.com/images/upload/geometry/unitcircle.png?&quot; alt=&quot;旋转矩阵分析&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;通过上图，我们来分析在旋转变换下，x、y、z会发生怎样的变化。假设横轴为x，纵轴为y，也就是说以z为轴进行旋转。&lt;/p&gt;
+
+&lt;p&gt;显然有以下结果：&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;l = \sqrt{x^{2}+y^{2}}\\
+x = cosθ*l\\
+y = sinθ*l\\&lt;/script&gt;
+
+&lt;p&gt;则有：&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;% &lt;![CDATA[
+\begin{align}
+x'&amp;=cos(θ+θ')*l\\
+&amp;=l*(cosθ*cosθ'-sinθ*sinθ')\\
+&amp;=x*cosθ'-y*sinθ'\\
+\end{align} %]]&gt;&lt;/script&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;% &lt;![CDATA[
+\begin{align}
+y'&amp;=sin(θ+θ')*l\\
+&amp;=l*(sinθ*cosθ'+cosθ*sinθ')\\
+&amp;=x*sinθ'+y*cosθ'\\
+\end{align} %]]&gt;&lt;/script&gt;
+
+&lt;p&gt;这意味着，对于3x3的变换矩阵，只要控制系数c使得相乘结果与上述一致，即完成了旋转操作。对于绕z轴旋转的操作，可由以下变换矩阵实现。&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;% &lt;![CDATA[
+R_{z}(θ’)=
+\begin{bmatrix}
+cosθ' &amp; sinθ' &amp; 0\\
+-sinθ' &amp; cosθ' &amp; 0\\
+0 &amp; 0 &amp; 1
+\end{bmatrix} %]]&gt;&lt;/script&gt;
+
+&lt;p&gt;同理，还可以得到绕x或y旋转所需的变换矩阵形式：&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;% &lt;![CDATA[
+R_x(\theta')= \begin{bmatrix} 
+1 &amp; 0 &amp; 0 \\
+0 &amp; \cos(\theta') &amp; \sin(\theta') \\
+0 &amp; -\sin(\theta') &amp; \cos(\theta') \\
+\end{bmatrix} %]]&gt;&lt;/script&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;% &lt;![CDATA[
+R_y(\theta')= \begin{bmatrix}
+\cos(\theta') &amp; 0 &amp; -\sin(\theta') \\
+0 &amp; 1 &amp;  0 \\
+\sin(\theta') &amp; 0 &amp; \cos(\theta') \\ 
+\end{bmatrix} %]]&gt;&lt;/script&gt;
+
+&lt;h3 id=&quot;所以旋转矩阵中究竟包含了什么信息&quot;&gt;所以旋转矩阵中究竟包含了什么信息？&lt;/h3&gt;
+
+&lt;p&gt;通过目标结果与初始量之间的分析，我们构造出了绕某轴旋转时的变换矩阵；这样的构造使得运算能够得到正确的结果，但是我们还没有弄清楚旋转矩阵中究竟包含了什么信息，使得其能够完成旋转变换。&lt;/p&gt;
+
+&lt;p&gt;实际上，矩阵中包含了有关坐标系的信息。旋转矩阵的三行分别代表了x、y、z三个轴旋转θ’后的结果。可以这样思考：&lt;/p&gt;
+
+&lt;p&gt;变换矩阵可以通过矩阵的乘法来完整多种变换的融合，若要实现旋转操作，实际上可以拆分为如下所示：&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;P*R=(P*I)*R=P*(I*R)&lt;/script&gt;
+
+&lt;p&gt;其中，&lt;code class=&quot;highlighter-rouge&quot;&gt;I*R&lt;/code&gt;即为单位矩阵旋转后所得的矩阵，而单位矩阵I的三行实际上代表了坐标系的x、y、z三轴。&lt;/p&gt;
+
+&lt;h2 id=&quot;旋转平移矩阵&quot;&gt;旋转平移矩阵&lt;/h2&gt;
+
+&lt;p&gt;对于Points来说，其平移操作虽然只需要矩阵的加法即可完成，但由于旋转变换使用了矩阵的乘法，为了变换的统一，即能够将旋转和平移操作合并到一个矩阵中，需要对前述的各种设定进行细微的修改，以便在旋转矩阵中加入平移变换。&lt;/p&gt;
+
+&lt;p&gt;从变换的结果来看，P经过旋转和平移变换为P’，结果如下：&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;\begin{array}{l}
+P'.x = P.x * M_{00} + P.y * M_{10} + P.z * M_{20} + T_X\\
+P'.y = P.x * M_{01} + P.y * M_{11} + P.z * M_{21} + T_Y\\
+P'.z = P.x * M_{02} + P.y * M_{12} + P.z * M_{22} + T_Z
+\end{array}&lt;/script&gt;
+
+&lt;p&gt;与旋转操作对比，只是在旋转操作完成后加上了平移的偏移值。但是为了能够在矩阵乘法过程中完成这个操作，显然3x3的矩阵是无法办到的。&lt;/p&gt;
+
+&lt;p&gt;若将矩阵扩展为4x4，为了使Points能够与其相乘，因此也需要将Points的表现形式修正为1x4的矩阵，由于这个修正只是为了引入偏移量，因此默认为1。修改设定后，变换操作的过程可以表现为以下形式：&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;\begin{array}{l}
+P'.x = P.x * M_{00} + P.y * M_{10} + P.z * M_{20} + 1 * M_{30}\\
+P'.y = P.x * M_{01} + P.y * M_{11} + P.z * M_{21} + 1 * M_{31}\\
+P'.z = P.x * M_{02} + P.y * M_{12} + P.z * M_{22} + 1 * M_{32}\end{array}&lt;/script&gt;
+
+&lt;p&gt;显然，变换后的结果应仍为Points，因此单纯地将旋转矩阵添加一行为4x3是不妥的，这也是我们如上述将矩阵直接扩展为4x4的原因。&lt;/p&gt;
+
+&lt;p&gt;当然，扩展后，1x4的Points与4x4的变换矩阵相乘，结果中Points最后一位的计算如下所示：&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;w = P.x * M_{03} + P.y * M_{13} + P.z * M_{23} + 1 * M_{33}&lt;/script&gt;
+
+&lt;p&gt;当然，为了使结果得到的w也为1，我们可以选择默认旋转平移矩阵的第4列为0001，这样使得w恒为1；也可以用这个第4列来实现新的变换，即在得到w的值后，将Points矩阵缩放使得w为1，这样使得第四列可以用于缩放变换。&lt;/p&gt;
+
+&lt;p&gt;经过上述讨论后，可以得到绕z轴旋转的旋转平移缩放矩阵的形式：&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;% &lt;![CDATA[
+R_{z}(θ’)=
+\begin{bmatrix}
+cosθ' &amp; sinθ' &amp; 0 &amp; 0\\
+-sinθ' &amp; cosθ' &amp; 0 &amp; 0\\
+0 &amp; 0 &amp; 1 &amp; 0\\
+T_{x} &amp; T_{y} &amp; T_{z} &amp; S
+\end{bmatrix} %]]&gt;&lt;/script&gt;
+</description>
+        <pubDate>Sat, 29 Sep 2018 00:00:00 +0800</pubDate>
+        <link>https://xinrea.net/2018/09/29/Transforming-points-and-vectors.html</link>
+        <guid isPermaLink="true">https://xinrea.net/2018/09/29/Transforming-points-and-vectors.html</guid>
+        
+        <category>Computer-Graphics</category>
+        
+        
+      </item>
     
       <item>
         <title>Java模块解耦</title>
@@ -1136,54 +1296,6 @@ else{
         <guid isPermaLink="true">https://xinrea.net/2017/09/17/linux-learn-fork.html</guid>
         
         <category>linux</category>
-        
-        <category>learn</category>
-        
-        
-      </item>
-    
-      <item>
-        <title>储存转发传输 - 传输时间计算</title>
-        <description>&lt;h1 id=&quot;计算机网络&quot;&gt;计算机网络&lt;/h1&gt;
-
-&lt;h4 id=&quot;储存转发传输---传输时间计算&quot;&gt;储存转发传输 - 传输时间计算&lt;/h4&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;传播时延不予考虑&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;由N条速率均为R的链路组成的路径, 从源到目的地发送一个分组的总体情况, 端到端时延为:&lt;/p&gt;
-
-&lt;p&gt;d&lt;sub&gt;端到端&lt;/sub&gt; = N·L/R&lt;/p&gt;
-
-&lt;p&gt;下面来分析P个分组经过N条链路序列的时延:&lt;/p&gt;
-
-&lt;p&gt;令T&lt;sub&gt;(p)&lt;/sub&gt;表示第P个分组刚好全部被最后一个路由器转发出去时的时间, 则有如下关系:&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;注意:T&lt;sub&gt;(p)&lt;/sub&gt;同时表示第P+1个分组刚开始被转发时的时间&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;T&lt;sub&gt;(p)&lt;/sub&gt;=T&lt;sub&gt;(p-1)&lt;/sub&gt;+L/R&lt;/p&gt;
-
-&lt;p&gt;第一个分组经过N条链路所用时间为:&lt;/p&gt;
-
-&lt;p&gt;d&lt;sub&gt;端到端&lt;/sub&gt; = N·L/R&lt;/p&gt;
-
-&lt;p&gt;即T&lt;sub&gt;(p)&lt;/sub&gt;=T&lt;sub&gt;(p-1)&lt;/sub&gt;+L/R=T&lt;sub&gt;(p-2)&lt;/sub&gt;+2L/R=…=T&lt;sub&gt;(1)&lt;/sub&gt;+(p-1)L/R=(N+p-1)L/R&lt;/p&gt;
-
-&lt;p&gt;同时,有另一种思考方式可以得出同样的结果:&lt;/p&gt;
-
-&lt;p&gt;将传输链路忽略, 只考虑N-1台路由器在其中的作用(原因是忽略了传播时延), 长度为L的分组通过路由器所需时间为2L/R, 若将路由器看作限速为
-R的路径, 其长度为L, 则长度为L的绳子以R的速度全部通过这段长度为L路径, 所用时间为2L/R.&lt;/p&gt;
-
-&lt;p&gt;对此进行类比, 若有N条链路, 则其中有N-1台路由器, P个分组的数据总长度为PL, 类比作通过限速为R, 长度为(N-1)L的路径,所需要的时间即为(P+N-1)L/R, 与递推方法得出的公式一致.&lt;/p&gt;
-</description>
-        <pubDate>Sun, 17 Sep 2017 20:43:00 +0800</pubDate>
-        <link>https://xinrea.net/2017/09/17/network-note-1.html</link>
-        <guid isPermaLink="true">https://xinrea.net/2017/09/17/network-note-1.html</guid>
-        
-        <category>network</category>
         
         <category>learn</category>
         

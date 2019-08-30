@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FinalFantasyXIV 内存数据的读取（3） - Xinrea的个人博客</title>
-    <meta name="author"  content="黄涵">
-    <meta name="description" content="FinalFantasyXIV 内存数据的读取（3）">
+    <title>🍅FinalFantasyXIV 内存数据的读取（3） - 杏仁儿的归档室</title>
+    <meta name="author"  content="杏仁儿">
+    <meta name="description" content="🍅FinalFantasyXIV 内存数据的读取（3）">
     <meta name="keywords"  content="windows, c++, memory">
     <!-- Open Graph -->
-    <meta property="og:title" content="FinalFantasyXIV 内存数据的读取（3） - Xinrea的个人博客">
+    <meta property="og:title" content="🍅FinalFantasyXIV 内存数据的读取（3） - 杏仁儿的归档室">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://xinrea.net/2017/09/21/ffxiv-memory-read-3.html">
-    <meta property="og:description" content="C++/Python/Java - Game/Music/Animation">
-    <meta property="og:site_name" content="Xinrea的个人博客">
+    <meta property="og:url" content="http://localhost:4000/2017/09/21/ffxiv-memory-read-3.html">
+    <meta property="og:description" content="C++/Python/Java - 游戏/音乐/动漫">
+    <meta property="og:site_name" content="杏仁儿的归档室">
     <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
     <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
     <link rel="stylesheet" href="/assets/css/github-markdown.css">
@@ -103,27 +103,29 @@ Author: Ray-Eldath
             
             <li><a href="/tags.html">tags</a></li>
             
+            <li><a href="/projects.html">projects</a></li>
+            
         </ul>
     </nav>
 </header>
 
 
-  <header class="g-banner post-header post-pattern-circuitBoard bgcolor-default " data-theme="default">
+  <header class="g-banner post-header post-pattern-food bgcolor-default " data-theme="default">
     <div class="post-wrapper">
       <div class="post-tags">
         
           
-            <a href="https://xinrea.net/tags#windows" class="post-tag">windows</a>
+            <a href="http://localhost:4000/tags#windows" class="post-tag">windows</a>
           
-            <a href="https://xinrea.net/tags#c++" class="post-tag">c++</a>
+            <a href="http://localhost:4000/tags#c++" class="post-tag">c++</a>
           
-            <a href="https://xinrea.net/tags#memory" class="post-tag">memory</a>
+            <a href="http://localhost:4000/tags#memory" class="post-tag">memory</a>
           
         
       </div>
-      <h1>FinalFantasyXIV 内存数据的读取（3）</h1>
+      <h1>🍅FinalFantasyXIV 内存数据的读取（3）</h1>
       <div class="post-meta">
-        <span class="post-meta-item"><i class="iconfont icon-author"></i><a href="https://xinrea.net" target="_blank" rel="author">黄涵</a></></span>
+        <span class="post-meta-item"><i class="iconfont icon-author"></i><a href="http://localhost:4000" target="_blank" rel="author">杏仁儿</a></></span>
         <time class="post-meta-item" datetime="17-09-21"><i class="iconfont icon-date"></i>21 Sep 2017</time>
       </div>
     </div>
@@ -139,7 +141,7 @@ Author: Ray-Eldath
     <article class="markdown-body">
       <p>对于变量的定位，在此推荐使用<code class="highlighter-rouge">Cheat Engine</code>，算是一个远古神器吧，许多游戏辅助工具都需要借助这个工具。下面是<code class="highlighter-rouge">Cheat Engine</code>的主界面截图：</p>
 
-<p><img src="https://xinrea.net/assets/pic9212218.png" alt="Cheat Engine 主界面" /></p>
+<p><img src="http://localhost:4000/assets/pic9212218.png" alt="Cheat Engine 主界面" /></p>
 
 <p>由于这个工具出现有了一定的年头了，详细的使用方法不会在本文中进行详细介绍，读者可自行查阅资料进行使用。</p>
 
@@ -147,7 +149,7 @@ Author: Ray-Eldath
 
 <p>重复打开游戏，进行变量地址的指针扫描，会使得列表中的指针数量越来越少，最后会发现游戏中有几个指针是固定指向该地址的，而且表中给出了各处的偏移量，不同指针的区别可能与角色的其他状态有关，需要读者自行验证，最终找到了通用的指针偏移表便是成功。</p>
 
-<p><img src="https://xinrea.net/assets/pic9212312.png" alt="扫描变量地址" /></p>
+<p><img src="http://localhost:4000/assets/pic9212312.png" alt="扫描变量地址" /></p>
 
 <p>最终给出一路上所查阅到的相关资料：</p>
 
@@ -169,11 +171,11 @@ Author: Ray-Eldath
   <section class="author-detail">
     <section class="post-footer-item author-card">
       <div class="avatar">
-        <img src="https://xinrea.net/assets/img/profile.png" alt="">
+        <img src="http://localhost:4000/assets/img/profile.png" alt="">
       </div>
-      <div class="author-name" rel="author">黄涵</div>
+      <div class="author-name" rel="author">杏仁儿</div>
       <div class="bio">
-        <p>拖延症晚期患者，兴趣广泛，但无一精通。      对该博客内容有任何疑问，请邮件联系me@xinrea.com</p>
+        <p>拖延症晚期患者，兴趣广泛，但无一精通。联系邮箱：xinreas@outlook.com</p>
       </div>
       
       <ul class="sns-links">
@@ -192,12 +194,9 @@ Author: Ray-Eldath
       <div class="read-next-item">
         <a href="/2018/07/25/android-logger.html" class="read-next-link"></a>
         <section>
-          <span>Android Logger源码分析</span>
-          <p>(Removed in Android Lollipop)</p>
+          <span>🍊Android Logger源码分析</span>
+          <p>(Removed in Android Lollipop)简介：轻量级的日志系统，以驱动的形式实现在内核中，提供了...</p>
         </section>
-        
-        <div class="filter"></div>
-        <img src="/assets/default-android.png" alt="">
         
      </div>
       
@@ -206,7 +205,7 @@ Author: Ray-Eldath
       <div class="read-next-item">
         <a href="/2017/09/20/ffxiv-memory-read-2.html" class="read-next-link"></a>
           <section>
-            <span>FinalFantasyXIV 内存数据的读取（2）</span>
+            <span>☕️FinalFantasyXIV 内存数据的读取（2）</span>
             <p>上篇最后，给出了VS调试ffxiv_dx11.exe的图，可以看到，在我的环境下，其载入内存后基地址为0x0000...</p>
           </section>
           
@@ -222,15 +221,15 @@ Author: Ray-Eldath
   </section>
 
   <footer class="g-footer">
-  <section>Xinrea的个人博客 ©
+  <section>杏仁儿的归档室 ©
   
   
     2017
     -
   
-  2018
+  2019
   </section>
-  <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+  <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | Based on <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
 </footer>
 
 

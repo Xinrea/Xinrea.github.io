@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Xinrea的个人博客</title>
-    <meta name="author"  content="黄涵">
-    <meta name="description" content="C++/Python/Java - Game/Music/Animation">
+    <title>杏仁儿的归档室</title>
+    <meta name="author"  content="杏仁儿">
+    <meta name="description" content="C++/Python/Java - 游戏/音乐/动漫">
     <meta name="keywords"  content="Xinrea, 个人博客">
     <!-- Open Graph -->
-    <meta property="og:title" content="Xinrea的个人博客">
+    <meta property="og:title" content="杏仁儿的归档室">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://xinrea.net/">
-    <meta property="og:description" content="C++/Python/Java - Game/Music/Animation">
-    <meta property="og:site_name" content="Xinrea的个人博客">
+    <meta property="og:url" content="http://localhost:4000/">
+    <meta property="og:description" content="C++/Python/Java - 游戏/音乐/动漫">
+    <meta property="og:site_name" content="杏仁儿的归档室">
     <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
     <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
     <link rel="stylesheet" href="/assets/css/github-markdown.css">
@@ -42,13 +42,15 @@
             
             <li><a href="/tags.html">tags</a></li>
             
+            <li><a href="/projects.html">projects</a></li>
+            
         </ul>
     </nav>
 </header>
 
 
 <div class="g-banner home-banner banner-theme-default" data-theme="default">
-    <h2>Xinrea的个人博客</h2>
+    <h2>杏仁儿的归档室</h2>
     <h3>TALK IS CHEAP, SHOW ME THE CODE</h3>
     
     <img class="header-img" src="/assets/img/banner.jpg" alt="">
@@ -61,11 +63,11 @@
             <article class="article-item">
                 
                 <section class="post-preview">
-                    <a class="post-link" href="/2018/09/29/Transforming-points-and-vectors.html" title="[计算机图形学]Points和Vectors的变换"></a>
-                    <h2 class="post-title">[计算机图形学]Points和Vectors的变换</h2>
+                    <a class="post-link" href="/2018/09/29/Transforming-points-and-vectors.html" title="🥒[计算机图形学]Points和Vectors的变换"></a>
+                    <h2 class="post-title">🥒[计算机图形学]Points和Vectors的变换</h2>
                     
                     
-                    <p class="post-excerpt">Points和Vectors均采用1x3的矩阵来表示，Points和Vectors的区别在于，Points具有绝对的位置，因此可以进行平移变换，也可以绕某点进行旋转变换；Vectors指示了方向，平移变换并不改变其方向，因此不存在平移变换。</p>
+                    <p class="post-excerpt">Points和Vectors均采用1x3的矩阵来表示，Points和Vectors的区别在于，Points具有绝对的位置，因此可以进行平移变换，也可以绕某点进行旋转变换；Vectors指示了方向，平移变换并不改变其方向，因此不存在平移变换。通过构...</p>
                     
                 </section>
                 <footer class="post-meta">
@@ -83,11 +85,11 @@
             <article class="article-item">
                 
                 <section class="post-preview">
-                    <a class="post-link" href="/2018/08/14/Java-Decoupling.html" title="Java模块解耦"></a>
-                    <h2 class="post-title">Java模块解耦</h2>
+                    <a class="post-link" href="/2018/08/14/Java-Decoupling.html" title="🥓Java模块解耦"></a>
+                    <h2 class="post-title">🥓Java模块解耦</h2>
                     
                     
-                    <p class="post-excerpt">步骤一 解决简单耦合</p>
+                    <p class="post-excerpt">步骤一 解决简单耦合类型一对于与对象状态无关的方法，可以直接将该方法本地化，解除耦合，例如：class A {  B b;...  aMethod() {    return b.add(1,2);    }}class B {...  add(...</p>
                     
                 </section>
                 <footer class="post-meta">
@@ -107,11 +109,11 @@
             <article class="article-item">
                 
                 <section class="post-preview">
-                    <a class="post-link" href="/2018/08/01/singleton.html" title="设计模式 - 单例模式"></a>
-                    <h2 class="post-title">设计模式 - 单例模式</h2>
+                    <a class="post-link" href="/2018/08/01/singleton.html" title="🥗设计模式 - 单例模式"></a>
+                    <h2 class="post-title">🥗设计模式 - 单例模式</h2>
                     
                     
-                    <p class="post-excerpt">静态成员方式</p>
+                    <p class="post-excerpt">静态成员方式类中所有成员均设为静态（static），例如：class Singleton { private:  static int data1; // 类内声明  static int data2; public:  static int g...</p>
                     
                 </section>
                 <footer class="post-meta">
@@ -133,11 +135,11 @@
             <article class="article-item">
                 
                 <section class="post-preview">
-                    <a class="post-link" href="/2018/08/01/Data-Structure-Alignment.html" title="结构体的数据对齐问题"></a>
-                    <h2 class="post-title">结构体的数据对齐问题</h2>
+                    <a class="post-link" href="/2018/08/01/Data-Structure-Alignment.html" title="🍞结构体的数据对齐问题"></a>
+                    <h2 class="post-title">🍞结构体的数据对齐问题</h2>
                     
                     
-                    <p class="post-excerpt">  以下方法均为GCC扩展方法</p>
+                    <p class="post-excerpt">  以下方法均为GCC扩展方法E1 默认struct test {        char a;        int b;};test t1;sizeof(t1) = 8E2 __attribute__((packed, aligned(X))...</p>
                     
                 </section>
                 <footer class="post-meta">
@@ -159,11 +161,11 @@
             <article class="article-item">
                 
                 <section class="post-preview">
-                    <a class="post-link" href="/2018/07/27/Google-File-System.html" title="Google File System 学习01"></a>
-                    <h2 class="post-title">Google File System 学习01</h2>
+                    <a class="post-link" href="/2018/07/27/Google-File-System.html" title="🥔Google File System 学习01"></a>
+                    <h2 class="post-title">🥔Google File System 学习01</h2>
                     
                     
-                    <p class="post-excerpt">1 介绍</p>
+                    <p class="post-excerpt">1 介绍  节点失效被看成是正常情况，而不再视为异常情况  文件都是非常巨大的  大部分文件都只会在文件尾新增数据  与应用一起设计文件系统API2 设计概览2.1 约定  系统是建立在大量廉价的计算机上，故障经常发生在这些计算机上  系统储存了...</p>
                     
                 </section>
                 <footer class="post-meta">
@@ -184,17 +186,12 @@
         
             <article class="article-item">
                 
-                <div class="post-cover">
-                    <a class="post-link" href="/2018/07/25/android-logger.html" title="Android Logger源码分析"></a>
-                    <img src="/assets/default-android.png" href="/2018/07/25/android-logger.html" alt="">
-                </div>
-                
                 <section class="post-preview">
-                    <a class="post-link" href="/2018/07/25/android-logger.html" title="Android Logger源码分析"></a>
-                    <h2 class="post-title">Android Logger源码分析</h2>
+                    <a class="post-link" href="/2018/07/25/android-logger.html" title="🍊Android Logger源码分析"></a>
+                    <h2 class="post-title">🍊Android Logger源码分析</h2>
                     
                     
-                    <p class="post-excerpt">(Removed in Android Lollipop)</p>
+                    <p class="post-excerpt">(Removed in Android Lollipop)简介：轻量级的日志系统，以驱动的形式实现在内核中，提供了Java和C/C++接口。位置：kernel/common/drivers/staging/android/logger.hkern...</p>
                     
                 </section>
                 <footer class="post-meta">
@@ -238,9 +235,9 @@
                 <div class="avatar">
                     <img src="/assets/img/profile.png" alt="">
                 </div>
-                <div class="author-name" rel="author">黄涵</div>
+                <div class="author-name" rel="author">杏仁儿</div>
                 <div class="bio">
-                    <p>拖延症晚期患者，兴趣广泛，但无一精通。      对该博客内容有任何疑问，请邮件联系me@xinrea.com</p>
+                    <p>拖延症晚期患者，兴趣广泛，但无一精通。联系邮箱：xinreas@outlook.com</p>
                 </div>
                 
                 <ul id="sns-links" class="sns-links">
@@ -313,15 +310,15 @@
 </main>
 
 <footer class="g-footer">
-  <section>Xinrea的个人博客 ©
+  <section>杏仁儿的归档室 ©
   
   
     2017
     -
   
-  2018
+  2019
   </section>
-  <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+  <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | Based on <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
 </footer>
 
 

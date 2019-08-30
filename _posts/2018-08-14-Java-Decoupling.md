@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Java模块解耦"
+title: "🥓Java模块解耦"
 date: 2018-08-14
 tags: java decouple
 ---

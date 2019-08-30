@@ -166,6 +166,7 @@
     .article-item {
         width: 100%;
         margin-bottom: 16px;
+        opacity: 80%;
         @include cardStyle;
         &:last-child {
             margin-bottom: 0;

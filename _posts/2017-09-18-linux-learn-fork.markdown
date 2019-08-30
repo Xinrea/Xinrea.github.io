@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "linux下 fork()函数的使用"
+title:  "🌰linux下 fork()函数的使用"
 date:   2017-09-17 20:43:00 +0800
 tags: linux learn
 ---

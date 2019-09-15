@@ -3,10 +3,10 @@
   <channel>
     <title>杏仁儿的归档室</title>
     <description>C++/Python/Java - 游戏/音乐/动漫</description>
-    <link>http://localhost:4000/</link>
-    <atom:link href="http://localhost:4000/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Mon, 16 Sep 2019 02:05:47 +0800</pubDate>
-    <lastBuildDate>Mon, 16 Sep 2019 02:05:47 +0800</lastBuildDate>
+    <link>https://xinrea.app/</link>
+    <atom:link href="https://xinrea.app/feed.xml" rel="self" type="application/rss+xml" />
+    <pubDate>Mon, 16 Sep 2019 02:07:17 +0800</pubDate>
+    <lastBuildDate>Mon, 16 Sep 2019 02:07:17 +0800</lastBuildDate>
     <generator>Jekyll v3.8.6</generator>
     
       <item>
@@ -160,8 +160,8 @@ T_{x} &amp; T_{y} &amp; T_{z} &amp; S
 \end{bmatrix} %]]&gt;&lt;/script&gt;
 </description>
         <pubDate>Sat, 29 Sep 2018 00:00:00 +0800</pubDate>
-        <link>http://localhost:4000/2018/09/29/Transforming-points-and-vectors.html</link>
-        <guid isPermaLink="true">http://localhost:4000/2018/09/29/Transforming-points-and-vectors.html</guid>
+        <link>https://xinrea.app/2018/09/29/Transforming-points-and-vectors.html</link>
+        <guid isPermaLink="true">https://xinrea.app/2018/09/29/Transforming-points-and-vectors.html</guid>
         
         <category>Computer-Graphics</category>
         
@@ -307,8 +307,8 @@ class C{
 &lt;p&gt;工厂类AFactory中，使用反射来使用类A，当查找不到类A时，转而使用类AFake，确保不会出错。这样进行处理后，工厂类AFactory会根据类A存在与否来选择实例化的方式。替换掉所有使用了&lt;code class=&quot;highlighter-rouge&quot;&gt;method()&lt;/code&gt;方法的地方后，外部就不再依赖于类A了，这样就达到了单方向完全解耦的效果。&lt;/p&gt;
 </description>
         <pubDate>Tue, 14 Aug 2018 00:00:00 +0800</pubDate>
-        <link>http://localhost:4000/2018/08/14/Java-Decoupling.html</link>
-        <guid isPermaLink="true">http://localhost:4000/2018/08/14/Java-Decoupling.html</guid>
+        <link>https://xinrea.app/2018/08/14/Java-Decoupling.html</link>
+        <guid isPermaLink="true">https://xinrea.app/2018/08/14/Java-Decoupling.html</guid>
         
         <category>java</category>
         
@@ -455,8 +455,8 @@ Singleton::Proxy Singleton::proxy;
 &lt;/code&gt;&lt;/pre&gt;
 </description>
         <pubDate>Wed, 01 Aug 2018 00:00:00 +0800</pubDate>
-        <link>http://localhost:4000/2018/08/01/singleton.html</link>
-        <guid isPermaLink="true">http://localhost:4000/2018/08/01/singleton.html</guid>
+        <link>https://xinrea.app/2018/08/01/singleton.html</link>
+        <guid isPermaLink="true">https://xinrea.app/2018/08/01/singleton.html</guid>
         
         <category>c++</category>
         
@@ -596,8 +596,8 @@ test3 t3;
 &lt;/table&gt;
 </description>
         <pubDate>Wed, 01 Aug 2018 00:00:00 +0800</pubDate>
-        <link>http://localhost:4000/2018/08/01/Data-Structure-Alignment.html</link>
-        <guid isPermaLink="true">http://localhost:4000/2018/08/01/Data-Structure-Alignment.html</guid>
+        <link>https://xinrea.app/2018/08/01/Data-Structure-Alignment.html</link>
+        <guid isPermaLink="true">https://xinrea.app/2018/08/01/Data-Structure-Alignment.html</guid>
         
         <category>c</category>
         
@@ -720,8 +720,8 @@ client&amp;lt;-------data--------------------chunkserver
 &lt;p&gt;并行写时，修改的内容以碎片的形式夹杂在一起，因此是不确定的&lt;/p&gt;
 </description>
         <pubDate>Fri, 27 Jul 2018 00:00:00 +0800</pubDate>
-        <link>http://localhost:4000/2018/07/27/Google-File-System.html</link>
-        <guid isPermaLink="true">http://localhost:4000/2018/07/27/Google-File-System.html</guid>
+        <link>https://xinrea.app/2018/07/27/Google-File-System.html</link>
+        <guid isPermaLink="true">https://xinrea.app/2018/07/27/Google-File-System.html</guid>
         
         <category>google</category>
         
@@ -1058,8 +1058,8 @@ out:
 &lt;/blockquote&gt;
 </description>
         <pubDate>Wed, 25 Jul 2018 00:00:00 +0800</pubDate>
-        <link>http://localhost:4000/2018/07/25/android-logger.html</link>
-        <guid isPermaLink="true">http://localhost:4000/2018/07/25/android-logger.html</guid>
+        <link>https://xinrea.app/2018/07/25/android-logger.html</link>
+        <guid isPermaLink="true">https://xinrea.app/2018/07/25/android-logger.html</guid>
         
         <category>android</category>
         
@@ -1074,7 +1074,7 @@ out:
         <title>🍅FinalFantasyXIV 内存数据的读取（3）</title>
         <description>&lt;p&gt;对于变量的定位，在此推荐使用&lt;code class=&quot;highlighter-rouge&quot;&gt;Cheat Engine&lt;/code&gt;，算是一个远古神器吧，许多游戏辅助工具都需要借助这个工具。下面是&lt;code class=&quot;highlighter-rouge&quot;&gt;Cheat Engine&lt;/code&gt;的主界面截图：&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;http://localhost:4000/assets/pic9212218.png&quot; alt=&quot;Cheat Engine 主界面&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;https://xinrea.app/assets/pic9212218.png&quot; alt=&quot;Cheat Engine 主界面&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;由于这个工具出现有了一定的年头了，详细的使用方法不会在本文中进行详细介绍，读者可自行查阅资料进行使用。&lt;/p&gt;
 
@@ -1082,7 +1082,7 @@ out:
 
 &lt;p&gt;重复打开游戏，进行变量地址的指针扫描，会使得列表中的指针数量越来越少，最后会发现游戏中有几个指针是固定指向该地址的，而且表中给出了各处的偏移量，不同指针的区别可能与角色的其他状态有关，需要读者自行验证，最终找到了通用的指针偏移表便是成功。&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;http://localhost:4000/assets/pic9212312.png&quot; alt=&quot;扫描变量地址&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;https://xinrea.app/assets/pic9212312.png&quot; alt=&quot;扫描变量地址&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;最终给出一路上所查阅到的相关资料：&lt;/p&gt;
 
@@ -1093,8 +1093,8 @@ out:
 &lt;p&gt;&lt;a href=&quot;https://en.wikipedia.org/wiki/Virtual_address_space&quot;&gt;wiki&lt;/a&gt;&lt;/p&gt;
 </description>
         <pubDate>Thu, 21 Sep 2017 22:27:00 +0800</pubDate>
-        <link>http://localhost:4000/2017/09/21/ffxiv-memory-read-3.html</link>
-        <guid isPermaLink="true">http://localhost:4000/2017/09/21/ffxiv-memory-read-3.html</guid>
+        <link>https://xinrea.app/2017/09/21/ffxiv-memory-read-3.html</link>
+        <guid isPermaLink="true">https://xinrea.app/2017/09/21/ffxiv-memory-read-3.html</guid>
         
         <category>windows</category>
         
@@ -1111,7 +1111,7 @@ out:
 
 &lt;p&gt;一个程序，有大量的信息储存在了PE头内，我们主要关心其中与基地址有关的信息，如下图所示：&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;http://localhost:4000/assets/pic9202041.png&quot; alt=&quot;ffxiv_dx11.exe的PE头&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;https://xinrea.app/assets/pic9202041.png&quot; alt=&quot;ffxiv_dx11.exe的PE头&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;在程序运行时，获得的内存空间对于其本身来看是连续的，这其实是一块虚拟出来的内存，要对应到真实的物理地址还需要经过一系列操作才能达成，但对于进程本身视角来看，其操作管理的内存的确是连续的，因此对自己的空间不需要考虑过多的问题。&lt;/p&gt;
 
@@ -1132,8 +1132,8 @@ out:
 &lt;p&gt;使用（1）中的方法便可动态获得游戏的基地址，接下来的任务便是定位变量。&lt;/p&gt;
 </description>
         <pubDate>Wed, 20 Sep 2017 20:27:00 +0800</pubDate>
-        <link>http://localhost:4000/2017/09/20/ffxiv-memory-read-2.html</link>
-        <guid isPermaLink="true">http://localhost:4000/2017/09/20/ffxiv-memory-read-2.html</guid>
+        <link>https://xinrea.app/2017/09/20/ffxiv-memory-read-2.html</link>
+        <guid isPermaLink="true">https://xinrea.app/2017/09/20/ffxiv-memory-read-2.html</guid>
         
         <category>windows</category>
         
@@ -1234,8 +1234,8 @@ DWORD dwGetModuleBaseAddress(DWORD dwProcessIdentifier, TCHAR *lpszModuleName)
 &lt;p&gt;多次打开&lt;code class=&quot;highlighter-rouge&quot;&gt;ffxiv_dx11.exe&lt;/code&gt;，获取&lt;code class=&quot;highlighter-rouge&quot;&gt;ffxiv_dx11.exe&lt;/code&gt;的入口地址，观察规律，会发现有惊喜。&lt;/p&gt;
 </description>
         <pubDate>Wed, 20 Sep 2017 08:00:00 +0800</pubDate>
-        <link>http://localhost:4000/2017/09/20/ffxiv-memory-read.html</link>
-        <guid isPermaLink="true">http://localhost:4000/2017/09/20/ffxiv-memory-read.html</guid>
+        <link>https://xinrea.app/2017/09/20/ffxiv-memory-read.html</link>
+        <guid isPermaLink="true">https://xinrea.app/2017/09/20/ffxiv-memory-read.html</guid>
         
         <category>windows</category>
         
@@ -1291,8 +1291,8 @@ else{
 
 </description>
         <pubDate>Sun, 17 Sep 2017 20:43:00 +0800</pubDate>
-        <link>http://localhost:4000/2017/09/17/linux-learn-fork.html</link>
-        <guid isPermaLink="true">http://localhost:4000/2017/09/17/linux-learn-fork.html</guid>
+        <link>https://xinrea.app/2017/09/17/linux-learn-fork.html</link>
+        <guid isPermaLink="true">https://xinrea.app/2017/09/17/linux-learn-fork.html</guid>
         
         <category>linux</category>
         

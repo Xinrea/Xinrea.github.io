@@ -1,0 +1,33 @@
+---
+title: Projects
+layout: default
+---
+
+{% include header.html %}
+
+<div class="g-banner projects-banner {{ site.postPatterns | prepend: 'post-pattern-' }} {{ site.theme-color | prepend: 'bgcolor-' }}" data-theme="{{ site.theme-color }}">
+    <h2>PROJECTS</h2>
+</div>
+
+<main class="projects-content">
+
+    <ul class="projects-list">
+        <li>
+            <div class="p-banner">
+                <div class="p-title">
+                    <a href="https://www.joi-club.cn/">Joi Club - 虚拟主播轴伊Joi的粉丝站</a>
+                </div>
+                <div class="p-desc">
+                    <p>实时显示直播间状态和关注数/自动更新视频列表/直播记录管理</p>
+                </div>
+                <div class="p-language">
+                    <span class="p-lbage"></span> Django
+                    <span class="p-lbage"></span> Python
+                    <span class="p-lbage"></span> Html
+                </div>
+            </div>
+        </li>
+    </ul>
+</main>
+    
+{% include footer.html %}

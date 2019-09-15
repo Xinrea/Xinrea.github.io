@@ -32,9 +32,11 @@ $$
 
 运算如下所示：
 
-    Ptransformed.x = P.x * 1 + P.y * 0 + P.z * 0 = P.x 
-    Ptransformed.y = P.x * 0 + P.y * 1 + P.z * 0 = P.y 
+$$
+    Ptransformed.x = P.x * 1 + P.y * 0 + P.z * 0 = P.x \\
+    Ptransformed.y = P.x * 0 + P.y * 1 + P.z * 0 = P.y \\
     Ptransformed.z = P.x * 0 + P.y * 0 + P.z * 1 = P.z 
+$$
 
 结果是`Ptransformed = P`。
 

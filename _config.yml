@@ -20,8 +20,8 @@ footer:
 # Author 配置博主信息
 author: '杏仁儿'
 nickname: 'Xinrea'
-bio: '拖延症晚期患者，兴趣广泛，但无一精通。联系邮箱：me@xinrea.net'
-avatar: '/assets/img/profile.png'
+bio: '拖延症晚期患者，兴趣是编程和看V。联系邮箱：me@xinrea.net'
+avatar: '/assets/img/avatar.png'
 
 # Search
 search: true
@@ -38,7 +38,7 @@ comments:
 mathjax: true
 
 # Share
-social-share: true
+social-share: false
 social-share-items: ['wechat', 'weibo', 'douban', 'twitter']
 
 # theme color 主题皮肤

@@ -62,35 +62,35 @@ $$
 
 $$
 l = \sqrt{x^{2}+y^{2}}\\
-x = cosθ*l\\
-y = sinθ*l\\
+x = cos\theta*l\\
+y = sin\theta*l\\
 $$
 
 则有：
 
 $$
 \begin{align}
-x'&=cos(θ+θ')*l\\
-&=l*(cosθ*cosθ'-sinθ*sinθ')\\
-&=x*cosθ'-y*sinθ'\\
+x'&=cos(\theta+\theta')*l\\
+&=l*(cos\theta*cos\theta'-sin\theta*sin\theta')\\
+&=x*cos\theta'-y*sin\theta'\\
 \end{align}
 $$
 
 $$
 \begin{align}
-y'&=sin(θ+θ')*l\\
-&=l*(sinθ*cosθ'+cosθ*sinθ')\\
-&=x*sinθ'+y*cosθ'\\
+y'&=sin(\theta+\theta')*l\\
+&=l*(sin\theta*cos\theta'+cos\theta*sin\theta')\\
+&=x*sin\theta'+y*cos\theta'\\
 \end{align}
 $$
 
 这意味着，对于3x3的变换矩阵，只要控制系数c使得相乘结果与上述一致，即完成了旋转操作。对于绕z轴旋转的操作，可由以下变换矩阵实现。
 
 $$
-R_{z}(θ’)=
+R_{z}(\theta’)=
 \begin{bmatrix}
-cosθ' & sinθ' & 0\\
--sinθ' & cosθ' & 0\\
+cos\theta' & sin\theta' & 0\\
+-sin\theta' & cos\theta' & 0\\
 0 & 0 & 1
 \end{bmatrix}
 $$
@@ -117,7 +117,7 @@ $$
 
 通过目标结果与初始量之间的分析，我们构造出了绕某轴旋转时的变换矩阵；这样的构造使得运算能够得到正确的结果，但是我们还没有弄清楚旋转矩阵中究竟包含了什么信息，使得其能够完成旋转变换。
 
-实际上，矩阵中包含了有关坐标系的信息。旋转矩阵的三行分别代表了x、y、z三个轴旋转θ'后的结果。可以这样思考：
+实际上，矩阵中包含了有关坐标系的信息。旋转矩阵的三行分别代表了x、y、z三个轴旋转\theta'后的结果。可以这样思考：
 
 变换矩阵可以通过矩阵的乘法来完整多种变换的融合，若要实现旋转操作，实际上可以拆分为如下所示：
 
@@ -165,10 +165,10 @@ $$
 经过上述讨论后，可以得到绕z轴旋转的旋转平移缩放矩阵的形式：
 
 $$
-R_{z}(θ’)=
+R_{z}(\theta’)=
 \begin{bmatrix}
-cosθ' & sinθ' & 0 & 0\\
--sinθ' & cosθ' & 0 & 0\\
+cos\theta' & sin\theta' & 0 & 0\\
+-sin\theta' & cos\theta' & 0 & 0\\
 0 & 0 & 1 & 0\\
 T_{x} & T_{y} & T_{z} & S
 \end{bmatrix}

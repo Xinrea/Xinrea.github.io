@@ -54,7 +54,7 @@ $$
 
 ## 旋转矩阵 （The Rotation Matrix）
 
-![旋转矩阵分析](http://www.scratchapixel.com/images/upload/geometry/unitcircle.png?)
+![旋转矩阵分析](https://www.scratchapixel.com/images/upload/geometry/unitcircle.png?)
 
 通过上图，我们来分析在旋转变换下，x、y、z会发生怎样的变化。假设横轴为x，纵轴为y，也就是说以z为轴进行旋转。
 

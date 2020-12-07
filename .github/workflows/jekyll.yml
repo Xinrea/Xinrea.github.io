@@ -26,4 +26,3 @@ jobs:
         username: root
         password: ${{ secrets.JOIPWD }}
         target: /var/www/html/blog/
-        source: ${{ github.workspace }}/_site/*

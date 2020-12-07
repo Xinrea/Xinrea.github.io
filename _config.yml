@@ -2,7 +2,7 @@
 title: '杏仁儿的归档室'
 description: 'C++/Python/Java - 游戏/音乐/动漫'
 keyword: 'Xinrea, 个人博客'
-url: 'https://xinrea.app' # your host
+url: 'https://xinrea.cn' # your host
 
 # if you don't need baseurl, you should leave this value blank.
 baseurl: ''
@@ -20,7 +20,7 @@ footer:
 # Author 配置博主信息
 author: '杏仁儿'
 nickname: 'Xinrea'
-bio: '拖延症晚期患者，兴趣广泛，但无一精通。联系邮箱：xinreas@outlook.com'
+bio: '拖延症晚期患者，兴趣广泛，但无一精通。联系邮箱：me@xinrea.net'
 avatar: '/assets/img/profile.png'
 
 # Search

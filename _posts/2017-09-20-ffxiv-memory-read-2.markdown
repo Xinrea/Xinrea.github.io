@@ -2,7 +2,7 @@
 layout: post
 title: "☕️FinalFantasyXIV 内存数据的读取（2）"
 date:   2017-09-20 20:27:00 +0800
-tags: windows c++ memory
+tags: Windows
 cover: '/assets/pic9202041.png'
 ---
 

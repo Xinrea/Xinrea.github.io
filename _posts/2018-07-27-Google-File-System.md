@@ -2,7 +2,7 @@
 layout: post
 title: "🥔Google File System 学习01"
 date: 2018-07-27
-tags: google filesystem distributed-system
+tags: Distributed-File-System
 ---
 ## 1 介绍
 

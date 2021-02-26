@@ -2,7 +2,7 @@
 layout: post
 title:  "🍌爬取bilibili视频封面"
 date:   2017-09-17 20:43:00 +0800
-tags: network learn python
+tags: Python
 ---
 
 ### 目标

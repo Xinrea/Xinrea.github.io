@@ -2,7 +2,7 @@
 layout: post
 title: "🍞结构体的数据对齐问题"
 date: 2018-08-01
-tags: c c++ alignment
+tags: C++
 ---
 > 以下方法均为GCC扩展方法
 

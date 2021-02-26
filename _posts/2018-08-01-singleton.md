@@ -2,7 +2,7 @@
 layout: post
 title: "🥗设计模式 - 单例模式"
 date: 2018-08-01
-tags: design-pattern
+tags: Design-Pattern
 ---
 ## 静态成员方式
 

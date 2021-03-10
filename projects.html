@@ -5,7 +5,8 @@ layout: default
 
 {% include header.html %}
 
-<div class="g-banner projects-banner {{ site.postPatterns | prepend: 'post-pattern-' }} {{ site.theme-color | prepend: 'bgcolor-' }}" data-theme="{{ site.theme-color }}">
+<div class="g-banner projects-banner {{ site.postPatterns | prepend: 'post-pattern-' }} {{ site.theme-color | prepend: 'bgcolor-' }}"
+    data-theme="{{ site.theme-color }}">
     <h2>PROJECTS</h2>
 </div>
 
@@ -27,7 +28,21 @@ layout: default
                 </div>
             </div>
         </li>
+        <li>
+            <div class="p-banner">
+                <div class="p-title">
+                    <a href="https://www.microsoft.com/store/productId/9P29MG9CMC9G">哔哩哔哩舰长私信助手</a>
+                </div>
+                <div class="p-desc">
+                    <p>自动化私信内容生成、发送；私信目标管理</p>
+                </div>
+                <div class="p-language">
+                    <span class="p-lbage"></span> C#
+                    <span class="p-lbage"></span> UWP
+                </div>
+            </div>
+        </li>
     </ul>
 </main>
-    
+
 {% include footer.html %}

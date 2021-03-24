@@ -88,36 +88,36 @@ typedef union epoll_data
 
 可以看到，epoll通过把麻烦留给内核的方式，简化了用户侧的使用，减少了一些步骤的开销。但由于维护数据结构本身就有一定的开销，所以对于简单少量的连接，select/poll说不定会更好。
 
-同时，由于epoll是后来实现的，时代在发展，因此也增添了一些新的特性。例如有了level-trigger和edge-trigger这两种触发模式，这里简称为lt和et。
+同时，由于epoll是后来实现的，时代在发展，因此也增添了一些新的特性。例如有了`Level-Trigger`和`Edge-Trigger`这两种触发模式，这里简称为LT和ET。
 
-lt模式下，数据不读取完，是一直处于事件触发状态的，需要处理完数据才会取消触发状态，就算这次不处理完，下次循环还可以继续；这对于单线程无所谓，但在多线程的情况下，这意味着可能一份数据，被拆成几份，被不同的线程在处理，这显然是不恰当的。
+LT模式下，数据不读取完，是一直处于事件触发状态的，需要处理完数据才会取消触发状态，就算这次不处理完，下次循环还可以继续；这对于单线程无所谓，但在多线程的情况下，这意味着可能一份数据，被拆成几份，被不同的线程在处理，这显然是不恰当的。
 
-et模式下，一旦有线程取得事件，则该触发状态取消，这意味着取得事件的线程需要自行独立一次处理完数据，这次不处理完，下次循环也就没了；多线程情况下，有可能产生竞争，不一定能保证安全。
+ET模式下，一旦有线程取得事件，则该触发状态取消，这意味着取得事件的线程需要自行独立一次处理完数据，这次不处理完，下次循环也就没了；多线程情况下，有可能产生竞争，不一定能保证安全。
 
-所以，对于fd还提供了一种事件类型，EPOLLONESHOT，这意味着该fd事件被获取后，便在红黑树中被标记为隐藏了，不再处于监听状态。因此线程可以安心处理数据，当然也是需要一次处理完，不过处理完后需要记得使用epoll_ctl()修改其事件属性，相当于重新加入监听列表。
+所以，对于fd还提供了一种事件类型，`EPOLLONESHOT`，这意味着该fd事件被获取后，便在红黑树中被标记为隐藏了，不再处于监听状态。因此线程可以安心处理数据，当然也是需要一次处理完，不过处理完后需要记得使用epoll_ctl()修改其事件属性，相当于重新加入监听列表。
 
 ## 实际使用中遇到的问题
 
-服务端程序在关闭后，相当于TCP四次挥手过程中的主动断开方，其监听的ip:port会进入TIME_WAIT状态，原因有以下几点：
+服务端程序在关闭后，相当于TCP四次挥手过程中的主动断开方，其监听的`ip:port`会进入`TIME_WAIT`状态，原因有以下几点：
 
 1. 其send(...)发送的数据可能还在缓冲区，需要一定时间发送出去；
 2. 这次连接过程中，末尾部分可能有些数据包还在网络中，TIME_WAIT确保最终网络上没有了连接中的东西，完全clean，再安全关闭。
 
-TIME_WAIT的设定使得服务端程序结束后，没办法立刻重新启动；为了解决这一点，可以在socket()创建好后，使用setsockopt()设定SO_REUSEADDR，这意味着ip:port在TIME_WAIT阶段便解除了独占状态（也仅限于此，正常状态下还是独占的），新socket不会因为TIME_WAIT占用而冲突，导致无法立刻bind。
+`TIME_WAIT`的设定使得服务端程序结束后，没办法立刻重新启动；为了解决这一点，可以在socket()创建好后，使用setsockopt()设定`SO_REUSEADDR`，这意味着`ip:port`在`TIME_WAIT`阶段便解除了独占状态（也仅限于此，正常状态下还是独占的），新socket不会因为`TIME_WAIT`占用而冲突，导致无法立刻bind。
 
 ### 关于SO_REUSEPORT
 
-类似的，还有一个SO_REUSEPORT（Kernel 3.9，修改了bind以及连接建立过程），这个实际上才是真正的`REUSEADDR`。上文说到，SO_REUSEADDR实际上只能处理TIME_WAIT阶段的ip:port，而SO_REUSEPORT就强大得多，在如今服务器后端开发中十分重要。下面是手册中的说明：
+类似的，还有一个`SO_REUSEPORT`（Kernel 3.9，修改了bind以及连接建立过程），这个实际上才是真正的"REUSEADDR"。上文说到，`SO_REUSEADDR`实际上只能处理`TIME_WAIT`阶段的`ip:port`，而`SO_REUSEPORT`就强大得多，在如今服务器后端开发中十分重要。下面是手册中的说明：
 
 >The new socket option allows multiple sockets on the same host to bind to the same port, and is intended to improve the performance of multithreaded network server applications running on top of multicore systems.
 
-这意味着，不同的套接字，真正的可以绑定到完全一致的ip:port上，并由内核来分配数据，这种特性对于多核CPU来说十分友好。如果不使用SO_REUSEPORT，由于ip:port和socket一对一绑定，那么想要多个进程来处理ip:port的连接请求，就只能通过以下两种方式来解决：
+这意味着，不同的套接字，真正的可以绑定到完全一致的`ip:port`上，并由内核来分配数据，这种特性对于多核CPU来说十分友好。如果不使用`SO_REUSEPORT`，由于`ip:port`和socket一对一绑定，那么想要多个进程来处理`ip:port`的连接请求，就只能通过以下两种方式来解决：
 
 1. 单线程listen()/accept()，然后将accept()得到的socket分发给工作线程处理。显然，瓶颈在listen()/accept()。
 2. fork()，多个子进程共享server_socket来accept()。多进程使用server_socket会产生锁竞争，开销很大。
 
-而使用SO_REUSEPORT的话，则可以随意扩展独立进程，来处理更多的请求，且互相之间独立，由内核完成分配工作；甚至可以新旧程序平行运行，共同处理。但是SO_REUSEPORT不是完美的，ip:port上server_socket数量变化时，可能将在server_socket_a上传输的数据包（连接建立中），发送给server_socket_b来处理，导致出错。
+而使用`SO_REUSEPORT`的话，则可以随意扩展独立进程，来处理更多的请求，且互相之间独立，由内核完成分配工作；甚至可以新旧程序平行运行，共同处理。但是SO_REUSEPORT不是完美的，ip:port上server_socket数量变化时，可能将在server_socket_a上传输的数据包（连接建立中），发送给server_socket_b来处理，导致出错。
 
 ## 总结
 
-至此，select/poll/epoll算是有了简单的认识，更多细节什么的，只需要翻阅文档即可。
+至此，select/poll/epoll算是有了简单的认识。

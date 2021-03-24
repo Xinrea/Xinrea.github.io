@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "🍊树状数组 （Binary Indexed Tree, BIT）"
-date: 2018-09-29
+date: 2021-02-26
 tags:  Data-Structure
 ---
 

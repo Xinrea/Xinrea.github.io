@@ -1,4 +1,4 @@
-baseURL = 'https://xinrea.cn/'
+baseURL = 'https://xinrea.github.io'
 languageCode = 'zh-CN'
 title = '杏仁儿'
 theme = "PaperMod"

@@ -2,3 +2,16 @@ baseURL = 'https://xinrea.github.io'
 languageCode = 'zh-CN'
 title = '杏仁儿'
 theme = "PaperMod"
+
+[params.profileMode]
+enabled = true
+title = "杏仁儿"
+subtitle = "......"
+
+  [[params.profileMode.buttons]]
+  name = "Archive"
+  url = "/archive"
+
+  [[params.profileMode.buttons]]
+  name = "Github"
+  url = "https://github.com/xinrea"

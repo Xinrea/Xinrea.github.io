@@ -1,0 +1,9 @@
+baseURL: 'https://xinrea.github.io'
+languageCode: 'zh-CN'
+title: '杏仁儿'
+theme: "PaperMod"
+
+params:
+    homeInfoParams:
+        Title: 哈喽哈喽晚上好
+        Content: 随便记录一点东西

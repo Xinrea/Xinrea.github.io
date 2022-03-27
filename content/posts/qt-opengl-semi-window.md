@@ -4,9 +4,9 @@ date: 2022-03-27T17:35:21Z
 draft: false
 ---
 
-在学习熟悉 CubismSDK 的时候，曾给轴伊Joi制作过一个简单的 Live2D 桌面宠物；由于是在官方样例的基础上修改了，因此是通过 glew + glfw 来实现的。由于桌面宠物的特殊性，需要尽可能减少对桌面操作的影响，于是需要实现异形窗口。这个异形窗口与一般的需求还不太一样，通常的异形窗口是静态的，仅以一张图片作为底图，有很多种方法可以实现，其中一种便是是用蒙版（mask）来实现。
+在学习熟悉 CubismSDK 的时候，曾给轴伊Joi制作过一个简单的 Live2D 桌面宠物；由于是在官方样例的基础上进行的修改，因此程序主题通过 glew + glfw 来进行实现。由于桌面宠物的特殊性（需要尽可能减少对桌面操作的影响），可以说是必须实现异形窗口。这个异形窗口与一般的需求还不太一样：通常异形窗口是静态的，仅以一张图片作为底图，有很多种方法可以实现，其中一种便是用蒙版（Mask）来实现，但这种方式在桌面宠物这种场景下显得有点尴尬。
 
-但对于动态渲染，用 OpenGL 实现的桌面宠物来说，读取当前 Buffer 生成 mask 是效率极低的。好在 Windows 下提供了 `SetLayeredWindowAttributes(hwnd,RGB(0, 0, 0), 255, LWA_COLORKEY)` 这一方法，直接进行键值抠图即可。但问题是其精度极低，渲染出的模型边缘会出现很明显的底色锯齿边缘。
+对于用 OpenGL 动态渲染的桌面宠物来说，读取当前 Buffer 生成 Mask 是效率极低的。好在 Windows 下提供了 `SetLayeredWindowAttributes(hwnd,RGB(0, 0, 0), 255, LWA_COLORKEY)` 这一方法，直接进行键值抠图即可。但问题是其精度极低，渲染出的模型边缘会出现很明显的底色锯齿边缘。
 
 在 glfw 中，通过 `glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_TRUE)` 可实现窗口 Buffer 新增 Alpha 通道；配合 `LWA_COLORKEY` 即可实现无锯齿边缘的 OpenGL 渲染的即时异形窗口。
 

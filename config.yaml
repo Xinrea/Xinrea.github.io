@@ -14,8 +14,6 @@ params:
               url: "/archives"
             - name: Github
               url: "https://github.com/Xinrea"
-            - name: Search
-              url: "/search"
 
     socialIcons: # optional
         - name: "bilibili"

@@ -9,10 +9,10 @@ params:
         subtitle: "简单记录，简单生活"
         buttons:
             - name: Archive
-                url: "/archive"
+              url: "/archive"
             - name: Github
-                url: "https://github.com/Xinrea"
+              url: "https://github.com/Xinrea"
 
     socialIcons: # optional
         - name: "bilibili"
-            url: "https://space.bilibili.com/475210"
+          url: "https://space.bilibili.com/475210"

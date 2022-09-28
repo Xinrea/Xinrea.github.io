@@ -1,15 +1,17 @@
 baseURL: 'https://xinrea.cn'
 languageCode: 'zh-CN'
-title: '杏仁儿的博客'
+title: '杏仁儿'
 theme: "PaperMod"
 
 params:
     profileMode:
         enabled: true
-        subtitle: "简单记录，简单生活"
+        subtitle: "简单生活"
         buttons:
-            - name: Archive
-              url: "/archive"
+            - name: Projects
+              url: "/projects"
+            - name: Posts
+              url: "/posts"
             - name: Github
               url: "https://github.com/Xinrea"
 

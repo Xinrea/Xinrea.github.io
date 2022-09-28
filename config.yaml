@@ -10,8 +10,8 @@ params:
         buttons:
             - name: Projects
               url: "/projects"
-            - name: Posts
-              url: "/posts"
+            - name: Archives
+              url: "/archives"
             - name: Github
               url: "https://github.com/Xinrea"
 

@@ -1,9 +1,18 @@
-baseURL: 'https://xinrea.github.io'
+baseURL: 'https://xinrea.cn'
 languageCode: 'zh-CN'
-title: '杏仁儿'
+title: '杏仁儿的博客'
 theme: "PaperMod"
 
 params:
-    homeInfoParams:
-        Title: 哈喽哈喽晚上好
-        Content: 随便记录一点东西
+    profileMode:
+        enabled: true
+        subtitle: "简单记录，简单生活"
+        buttons:
+            - name: Archive
+            url: "/archive"
+            - name: Github
+            url: "https://github.com/Xinrea"
+
+    socialIcons: # optional
+        - name: "bilibili"
+            url: "https://space.bilibili.com/475210"

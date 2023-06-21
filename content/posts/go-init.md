@@ -1,6 +1,5 @@
 ---
-title: Golang，从 init 函数的顺序问题到 Go 编译器
-date: 2023-6-20T12:55:00Z
+title: "Golang，从 init 函数的顺序问题到 Go 编译器"
 draft: false
 ---
 

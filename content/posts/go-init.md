@@ -1,6 +1,8 @@
 ---
 title: "Golang，从 init 函数的顺序问题到 Go 编译器"
+date: 2023-06-22
 draft: false
+tags: ["Golang", "编译器", "init function"]
 ---
 
 在同一个 go 文件里，初始相关的执行顺序是 const -> var -> init()。显然，如果同文件里有多个 init()，那么将按照声明顺序来执行。如果是不同 package 里的 init()，那么将按照 import 的顺序来执行。下面将考虑更特殊的一些情况。

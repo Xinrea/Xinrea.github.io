@@ -1,6 +1,5 @@
 ---
 title: "Golang，从 init 函数的顺序问题到 Go 编译器"
-date: 2023-06-22
 draft: false
 tags: ["Golang", "编译器", "init function"]
 ---
@@ -9,11 +8,10 @@ tags: ["Golang", "编译器", "init function"]
 
 有如下场景：
 
-```
+```text
 main.go
-a
- - b.go
- - c.go
+a/b.go
+a/c.go
 ```
 
 ```go
@@ -50,7 +48,7 @@ func init() {
 
 执行 `go run main.go`，输出：
 
-```
+```text
 b init
 c init
 A
@@ -58,7 +56,7 @@ A
 
 然后将 `a/b.go` 改名为 `a/d.go`，再次执行 `go run main.go`，输出：
 
-```
+```text
 c init
 b init
 A
@@ -70,7 +68,7 @@ A
 
 我们在 `a/c.go` 中加入 `var C = A()`，由于 A() 是在 `a/d.go` 中定义的，所以会先处理 `a/d.go` 吗？
 
-```
+```text
 A
 c init
 b init
@@ -79,13 +77,36 @@ A
 
 从结果可见[现象2]：就算 var 先进行初始化，使用了定义在 `a/d.go` 中的 A()，但是 init() 函数的执行顺序仍然是按照文件名的字母顺序来的。
 
-类似的，还有[现象3]：package 内文件中包含的 import 的处理顺序也是按照文件名的字母顺序来的，跟这里的 init() 函数的执行顺序是类似的，也就是说： `相同 package 内，a.go 内的 import 会先于 b.go 内的 import 执行`。
+类似的，还有[现象3]：package 内文件中包含的 import 的处理顺序也是按照文件名的字母顺序来的，跟这里的 init() 函数的执行顺序是类似的，也就是说： 相同 package 内，a.go 内的 import “似乎”会先于 b.go 内的 import 执行。
 
 实际上，导致这些结果的原因均来自于编译器对文件的处理，从源码中能够找到这三个现象的根源。
 
-Golang 编译器相关源码位于`go/src/cmd/compile/`。
+Golang 编译器相关源码位于 [`go/src/cmd/compile/`](https://github.com/golang/go/tree/d8117459c513e048eb72f11988d5416110dff359/src/cmd/compile)。
 
-Go 编译处理的单位是 Package，生成的结果是对象文件。在一次编译过程开始时会读取 Package 中所有文件内容进行词法和语法分析，此处发生在 `go/src/cmd/compile/internal/noder/noder.go:LoadPackage`，每个文件的词法和语法分析是并行处理的，[]*noder 的顺序也就是所给出的文件列表的顺序，noder 对应单一的文件，是这个文件中代码的 AST，可见在经过词法和语法分析时，仍是对单个文件进行的处理，还没有决定 init 的顺序，更没有进行 import 引入其他 Package。
+> 本文中引用的源码均标注了链接，版本为 `Go 1.21 release`。
+
+Go 编译处理的单位是 Package，生成的结果是对象文件。在一次编译过程开始时会读取 Package 中所有文件内容进行词法和语法分析。我们很容易就能找到编译器的入口：
+
+```go
+// https://github.com/golang/go/blob/d8117459c513e048eb72f11988d5416110dff359/src/cmd/compile/main.go#L45
+func main() {
+    // disable timestamps for reproducible output
+    log.SetFlags(0)
+    log.SetPrefix("compile: ")
+
+    buildcfg.Check()
+    archInit, ok := archInits[buildcfg.GOARCH]
+    if !ok {
+        fmt.Fprintf(os.Stderr, "compile: unknown architecture %q\n", buildcfg.GOARCH)
+        os.Exit(2)
+    }
+
+    gc.Main(archInit)
+    base.Exit(0)
+}
+```
+
+此处发生在 [noder.LoadPackage(flag.Args())](https://github.com/golang/go/blob/d8117459c513e048eb72f11988d5416110dff359/src/cmd/compile/internal/noder/noder.go#L27)，每个文件的词法和语法分析是并行处理的，[]*noder 的顺序也就是所给出的文件列表的顺序，noder 对应单一的文件，是这个文件中代码的 AST，可见在经过词法和语法分析时，仍是对单个文件进行的处理，还没有决定 init 的顺序，更没有进行 import 引入其他 Package。
 
 接下来 []*noder 被传入 check2() 用于类型检查。
 
@@ -111,11 +132,11 @@ func check2(noders []*noder) {
 IR 树生成过程中遇到函数是这样处理的：
 
 ```go
-    case pkgbits.ObjFunc:
-        if sym.Name == "init" {
-            sym = Renameinit()
-        }
-    ...
+case pkgbits.ObjFunc:
+    if sym.Name == "init" {
+        sym = Renameinit()
+    }
+...
 ```
 
 可见 init 函数是多么特殊，它会被重命名，这样就不会与其他 init 函数冲突了。Renameinit() 的实现如下：
@@ -148,17 +169,17 @@ type Package struct {
 也就是说终于在 checkFiles() 时，加载了其他的 Package。接下来看看被引用的 Package 是如何被加载的，源码见 `go/src/cmd/compile/internal/noder/irgen.go`。
 
 ```go
-    importer := gcimports{
-        ctxt:     ctxt,
-        packages: make(map[string]*types2.Package),
-    }
-    conf := types2.Config{
-        ...
-        Importer:               &importer,
-        ...
-    }
+importer := gcimports{
+    ctxt:     ctxt,
+    packages: make(map[string]*types2.Package),
+}
+conf := types2.Config{
     ...
-    pkg, err := conf.Check(base.Ctxt.Pkgpath, files, info)
+    Importer:               &importer,
+    ...
+}
+...
+pkg, err := conf.Check(base.Ctxt.Pkgpath, files, info)
 ```
 
 其中 gcimports 提供了一个 Import 方法，用于加载其他 Package，将会在 conf.Check() 中被调用。这个方法实际上是将编译好的 Package 对象文件重新加载为 types2.Package 结构体，也就是编译成对象文件的逆操作，显然这要求被依赖的 Package 提前编译好。
@@ -173,25 +194,25 @@ func (conf *Config) Check(path string, files []*syntax.File, info *Info) (*Packa
 conf.Check() 简单新建了一个 Package 结构用于表示自身，然后新建了一个 Checker，并调用了 Checker 的 Files() 方法，可以断定 import 的处理是在 Checker 的 Files() 方法中进行的，我们继续深入。
 
 ```go
-    ...
-    print("== initFiles ==")
-    check.initFiles(files)
+...
+print("== initFiles ==")
+check.initFiles(files)
 
-    print("== collectObjects ==")
-    check.collectObjects()
+print("== collectObjects ==")
+check.collectObjects()
 
-    print("== packageObjects ==")
-    check.packageObjects()
+print("== packageObjects ==")
+check.packageObjects()
 
-    print("== processDelayed ==")
-    check.processDelayed(0) // incl. all functions
+print("== processDelayed ==")
+check.processDelayed(0) // incl. all functions
 
-    print("== cleanup ==")
-    check.cleanup()
+print("== cleanup ==")
+check.cleanup()
 
-    print("== initOrder ==")
-    check.initOrder()
-    ...
+print("== initOrder ==")
+check.initOrder()
+...
 ```
 
 initFiles() 用于检查文件开头的 package 语句所声明的名称是否符合要求，例如要跟当前 package 名一致，否则忽略这个文件（都经过词法语法分析了，白分析了，当然编译前就能检查出这些问题，一般不会进行到这里才发现）。
@@ -206,10 +227,10 @@ Scope 结构组织好后，还需要检查 FileScope 跟 PackageScope 之间的�
 
 ```go
  // verify that objects in package and file scopes have different names
-    for _, scope := range fileScopes {
-        for name, obj := range scope.elems {
-            if alt := pkg.scope.Lookup(name); alt != nil {
-                ...
+for _, scope := range fileScopes {
+    for name, obj := range scope.elems {
+        if alt := pkg.scope.Lookup(name); alt != nil {
+            ...
 ```
 
 initOrder() 是对一些有依赖关系的全局声明进行排序，并未涉及 init() 的处理，例如：
@@ -234,17 +255,17 @@ var (
 接下来终于来到了 pkginit 包的内容。
 
 ```go
-    // Parse and typecheck input.
-    noder.LoadPackage(flag.Args())
-    ...
-    // Create "init" function for package-scope variable initialization
-    // statements, if any.
-    //
-    // Note: This needs to happen early, before any optimizations. The
-    // Go spec defines a precise order than initialization should be
-    // carried out in, and even mundane optimizations like dead code
-    // removal can skew the results (e.g., #43444).
-    pkginit.MakeInit()
+// Parse and typecheck input.
+noder.LoadPackage(flag.Args())
+...
+// Create "init" function for package-scope variable initialization
+// statements, if any.
+//
+// Note: This needs to happen early, before any optimizations. The
+// Go spec defines a precise order than initialization should be
+// carried out in, and even mundane optimizations like dead code
+// removal can skew the results (e.g., #43444).
+pkginit.MakeInit()
 ```
 
 从注释也可以知道，在词法分析、语法分析以及类型检查和构造 IR 树的过程中，均未涉及代码优化。以下是 MakeInit() 的内容，关键部分使用中文进行了更详细的注释，可以对照相关方法的源码进行阅读。
@@ -380,43 +401,43 @@ func Task() *ir.Name {
 最终 fns 数组保存了所有 init 函数；deps 数组保存了所有依赖的包的 .inittask 结构体。接下来合并构建自己 Package 的 .inittask。
 
 ```go
-    // Make an .inittask structure.
-    sym := typecheck.Lookup(".inittask")
-    task := typecheck.NewName(sym)
-    // 显然这个 .inittask 不是 uint8 类型的，只是为了占位，因此这里设置了一个 fake type。
-    task.SetType(types.Types[types.TUINT8]) // fake type
-    task.Class = ir.PEXTERN
-    sym.Def = task
-    lsym := task.Linksym()
-    ot := 0
-    // lsym.P = [0]
-    ot = objw.Uintptr(lsym, ot, 0) // state: not initialized yet
-    // lsym.P = [0, len(deps)]
-    ot = objw.Uintptr(lsym, ot, uint64(len(deps)))
-    // lsym.P = [0, len(deps), len(fns)]
-    ot = objw.Uintptr(lsym, ot, uint64(len(fns)))
-    // lsym.R = [newR(d)...]
-    for _, d := range deps {
-        ot = objw.SymPtr(lsym, ot, d, 0)
-    }
-    // lsym.R = [newR(d)..., newR(f)...]
-    for _, f := range fns {
-        ot = objw.SymPtr(lsym, ot, f, 0)
-    }
-    // An initTask has pointers, but none into the Go heap.
-    // It's not quite read only, the state field must be modifiable.
-    // 此处说明这个 .inittask 符号是全局的，决定了最后在 object 文件中的位置区域。
-    objw.Global(lsym, int32(ot), obj.NOPTR)
-    return task
+// Make an .inittask structure.
+sym := typecheck.Lookup(".inittask")
+task := typecheck.NewName(sym)
+// 显然这个 .inittask 不是 uint8 类型的，只是为了占位，因此这里设置了一个 fake type。
+task.SetType(types.Types[types.TUINT8]) // fake type
+task.Class = ir.PEXTERN
+sym.Def = task
+lsym := task.Linksym()
+ot := 0
+// lsym.P = [0]
+ot = objw.Uintptr(lsym, ot, 0) // state: not initialized yet
+// lsym.P = [0, len(deps)]
+ot = objw.Uintptr(lsym, ot, uint64(len(deps)))
+// lsym.P = [0, len(deps), len(fns)]
+ot = objw.Uintptr(lsym, ot, uint64(len(fns)))
+// lsym.R = [newR(d)...]
+for _, d := range deps {
+    ot = objw.SymPtr(lsym, ot, d, 0)
+}
+// lsym.R = [newR(d)..., newR(f)...]
+for _, f := range fns {
+    ot = objw.SymPtr(lsym, ot, f, 0)
+}
+// An initTask has pointers, but none into the Go heap.
+// It's not quite read only, the state field must be modifiable.
+// 此处说明这个 .inittask 符号是全局的，决定了最后在 object 文件中的位置区域。
+objw.Global(lsym, int32(ot), obj.NOPTR)
+return task
 ```
 
 在最后将其设置为导出的（Export），因为其符号名并非大写字母开头，但是要被其他包使用：
 
 ```go
-    // Build init task, if needed.
-    if initTask := pkginit.Task(); initTask != nil {
-        typecheck.Export(initTask)
-    }
+// Build init task, if needed.
+if initTask := pkginit.Task(); initTask != nil {
+    typecheck.Export(initTask)
+}
 ```
 
 至此，Package 单元对于 init 的处理就结束了，最后 Package 被编译为带有 .inittask 表的 object 文件，这个表中包含了所有的 init.x 函数和依赖的包的 .inittask 结构体指针，要注意这里只知道符号之间的关系，其他包里 init 函数的具体实现是不知道的，需要在链接阶段处理。

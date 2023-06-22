@@ -1,12 +1,18 @@
 ---
-title: "Golang，从 init 函数的顺序问题到 Go 编译器"
+title: "从 init 函数的顺序问题到 Go 编译器"
 date: 2023-06-21
 draft: true
 tags: ["Golang", "编译器", "init function"]
 ShowToc: true
 ---
 
-在同一个 go 文件里，初始相关的执行顺序是 const -> var -> init()。显然，如果同文件里有多个 init()，那么将按照声明顺序来执行。如果是不同 package 里的 init()，那么将按照 import 的顺序来执行。下面将考虑更特殊的一些情况。
+> 本文中引用的源码均标注了 Golang 源码仓库链接，版本为 `Go 1.21 release`。
+
+## `init()` 在不规范使用情况下产生的现象
+
+在同一个 go 文件里，初始相关操作的执行顺序是 `const` -> `var` -> `init()`。显然，如果同文件里有多个 `init()`，那么将按照声明顺序来执行；如果是不同 Package 里的 `init()`，那么将按照 import 的顺序来执行。
+
+那么，如果 Package 的 `init()` 分布在不同的文件里，将会按照什么顺序来执行呢？
 
 有如下场景：
 
@@ -19,7 +25,9 @@ a/c.go
 ```go
 // main.go
 package main
+
 import "go-init/a"
+
 func main() {
     a.A()
 }
@@ -48,7 +56,7 @@ func init() {
 }
 ```
 
-执行 `go run main.go`，输出：
+执行 `go run main.go`，得到输出：
 
 ```text
 b init
@@ -56,7 +64,7 @@ c init
 A
 ```
 
-然后将 `a/b.go` 改名为 `a/d.go`，再次执行 `go run main.go`，输出：
+接下来将 `a/b.go` 改名为 `a/d.go`，再次执行 `go run main.go`，输出：
 
 ```text
 c init
@@ -64,11 +72,11 @@ b init
 A
 ```
 
-可以看到有 [现象1]：`a/b.go` 和 `a/c.go` 的 init() 函数的执行顺序是按照文件名的字母顺序来的，将 `a/b.go` 改名后，其文件名顺序排在了 `a/c.go` 之后，最终 init() 执行也排在了之后。
+可以看到有 [现象 1]：`a/b.go` 和 `a/c.go` 的 `init()` 函数的执行顺序是按照文件名的字母顺序来的，将 `a/b.go` 改名后，其文件名顺序排在了 `a/c.go` 之后，最终 `init()` 执行也排在了之后。
 
-> 如果 package 内的文件存在 "引用关系" 呢？
+> 如果 Package 内的文件存在 “引用关系” 呢？
 
-我们在 `a/c.go` 中加入 `var C = A()`，由于 A() 是在 `a/d.go` 中定义的，所以会先处理 `a/d.go` 吗？
+如果我们在 `a/c.go` 中加入 `var C = A()`，注意 `A()` 是在 `a/d.go` 中定义的，那么处理顺序会发生变化吗？
 
 ```text
 A
@@ -77,15 +85,15 @@ b init
 A
 ```
 
-从结果可见[现象2]：就算 var 先进行初始化，使用了定义在 `a/d.go` 中的 A()，但是 init() 函数的执行顺序仍然是按照文件名的字母顺序来的。
+从结果可见[现象 2]：就算 var 声明在前，使用了声明在 `a/d.go` 中的 `A()`，但是 `init()` 函数的执行顺序仍然是按照文件名的字母顺序来的。
 
-类似的，还有[现象3]：package 内文件中包含的 import 的处理顺序也是按照文件名的字母顺序来的，跟这里的 init() 函数的执行顺序是类似的，也就是说： 相同 package 内，a.go 内的 import “似乎”会先于 b.go 内的 import 执行。
+类似的，还有[现象 3]：Package 内文件中包含的 import 的处理顺序也是按照文件名的字母顺序来的，跟这里的 `init()` 函数的执行顺序是类似的，也就是说： 相同 Package 内，`a.go` 内的 import “似乎”会先于 `b.go` 内的 import 处理。
 
-实际上，导致这些结果的原因均来自于编译器对文件的处理，从源码中能够找到这三个现象的根源。
+实际上，导致这些结果的原因均来自于编译器对文件的处理，从源码中能够找到这三个现象的根源，`init()` 的处理是 Go 编译过程中的重要一环。
+
+## 编译的起点 `gc.Main()`
 
 Golang 编译器相关源码位于 [`go/src/cmd/compile/`](https://github.com/golang/go/tree/d8117459c513e048eb72f11988d5416110dff359/src/cmd/compile)。
-
-> 本文中引用的源码均标注了链接，版本为 `Go 1.21 release`。
 
 Go 编译处理的单位是 Package，生成的结果是对象文件。在一次编译过程开始时会读取 Package 中所有文件内容进行词法和语法分析。我们很容易就能找到编译器的入口：
 

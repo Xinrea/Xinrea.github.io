@@ -17,7 +17,25 @@ markup:
   goldmark:
     renderer:
       unsafe: true
-
+outputs:
+  home:
+    - HTML
+    - RSS
+    - JSON # is necessary
+menu:
+  main:
+    - name: Archive
+      url: archives/
+      weight: 1
+    - name: Search
+      url: search
+      weight: 3
+    - name: Tags
+      url: tags
+      weight: 2
+    - name: Projects
+      url: projects
+      weight: 4
 params:
     env: production
     assets:
@@ -37,6 +55,9 @@ params:
     ShowReadingTime: true
     ShowBreadCrumbs: true
     disqusShortname: xinrea
-    defaultTheme: dark
-    disableThemeToggle: true
     ShowWordCount: true
+    defaultTheme: auto
+    editPost:
+      URL: "https://github.com/Xinrea/Xinrea.github.io/tree/main/content"
+      Text: "Suggest Changes" # edit text
+      appendFilePath: true # to append file path to Edit link

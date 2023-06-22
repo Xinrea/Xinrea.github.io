@@ -1,6 +1,7 @@
 ---
 title: "Golang，从 init 函数的顺序问题到 Go 编译器"
-draft: false
+date: 2023-06-21
+draft: true
 tags: ["Golang", "编译器", "init function"]
 ---
 

@@ -1,18 +1,18 @@
 ---
 title: "从 init 函数的顺序问题到 Go 编译器"
 date: 2023-06-21
-draft: true
-tags: ["Golang", "编译器", "init function"]
+draft: false
+tags: ["Golang", "Compiler", "Init Function"]
 ShowToc: true
 ---
 
-> 本文中引用的源码均标注了 Golang 源码仓库链接，版本为 `Go 1.21 release`。
+> 本文中引用的源码均标注了 Golang 源码仓库链接，branch 为 `release-branch.go1.21`（本文在编写时 Go 1.21 还未正式发布，正式版可能会有少量变化）。
 
 ## `init()` 在不规范使用情况下产生的现象
 
-在同一个 go 文件里，初始相关操作的执行顺序是 `const` -> `var` -> `init()`。显然，如果同文件里有多个 `init()`，那么将按照声明顺序来执行；如果是不同 Package 里的 `init()`，那么将按照 import 的顺序来执行。
+在同一个 go 文件里，初始相关操作的执行顺序是 `const` -> `var` -> `init()`。显然，如果同一个文件里有多个 `init()`，那么将按照声明顺序来执行。
 
-那么，如果 Package 的 `init()` 分布在不同的文件里，将会按照什么顺序来执行呢？
+如果 Package 的 `init()` 分布在不同的文件里，将会按照什么顺序来执行呢？
 
 有如下场景：
 
@@ -72,24 +72,14 @@ b init
 A
 ```
 
-可以看到有 [现象 1]：`a/b.go` 和 `a/c.go` 的 `init()` 函数的执行顺序是按照文件名的字母顺序来的，将 `a/b.go` 改名后，其文件名顺序排在了 `a/c.go` 之后，最终 `init()` 执行也排在了之后。
+可以看到有 [现象]：`a/b.go` 和 `a/c.go` 的 `init()` 函数的执行顺序是按照文件名的字母顺序来的，将 `a/b.go` 改名后，其文件名顺序排在了 `a/c.go` 之后，最终 `init()` 执行也排在了之后。
 
-> 如果 Package 内的文件存在 “引用关系” 呢？
+还有更多复杂的情况，例如：
 
-如果我们在 `a/c.go` 中加入 `var C = A()`，注意 `A()` 是在 `a/d.go` 中定义的，那么处理顺序会发生变化吗？
+- 如果 import 的包之间存在依赖关系，那么这些包的 `init()` 的执行顺序是怎样的？
+- 如果 Package 的 `init()` 分布在不同的文件里，而且这些文件里有交叉依赖的 `var` 全局变量，那么 `init()` 和这些全局变量初始化的执行顺序又是怎样的？
 
-```text
-A
-c init
-b init
-A
-```
-
-从结果可见[现象 2]：就算 var 声明在前，使用了声明在 `a/d.go` 中的 `A()`，但是 `init()` 函数的执行顺序仍然是按照文件名的字母顺序来的。
-
-类似的，还有[现象 3]：Package 内文件中包含的 import 的处理顺序也是按照文件名的字母顺序来的，跟这里的 `init()` 函数的执行顺序是类似的，也就是说： 相同 Package 内，`a.go` 内的 import *似乎*会先于 `b.go` 内的 import 处理。
-
-实际上，导致这些结果的原因均来自于编译器的处理，从 Go 编译器源码中能够找到这三个现象的根源，`init()` 的处理是 Go 编译过程中的重要一环。
+实际上，要真正弄清楚这些，需要深入 Go 编译器，从根源弄清原理。`init()` 的处理是 Go 编译过程中的重要一环。
 
 ## 编译的起点 `gc.Main()`
 
@@ -118,7 +108,7 @@ func main() {
 
 [`gc.Main()`](https://github.com/golang/go/blob/78c3aba4704c86874c36e61224966e7e07706bc0/src/cmd/compile/internal/gc/main.go#L59) 完成了整个编译流程，其内容是本文的重点；编译流程本身比较清晰，但内容很多，在本文中主要关心 `init()` 相关的处理。
 
-为了方便理解，请先阅读编译器部分的 [README.md](https://github.com/golang/go/blob/78c3aba4704c86874c36e61224966e7e07706bc0/src/cmd/compile/README.md)，了解编译器的基本流程和相关概念；下面也简单介绍一下编译器的流程，补充一些细节，便于理解为什么现在是这样一个结构。
+为了方便理解，请先阅读编译器部分的 [README.md](https://github.com/golang/go/blob/78c3aba4704c86874c36e61224966e7e07706bc0/src/cmd/compile/README.md)，了解编译器的基本流程和相关概念；下面也简单介绍一下编译器的流程，补充一些细节，便于理解为什么 Go 编译器现在是这样一个结构。
 
 ## 编译流程
 
@@ -268,7 +258,7 @@ SSA := SSAGen(IR)
 MACHINE_CODE := CodeGen(SSA)
 ```
 
-在 Go 1.21 正式启用了 Unified IR，因此 `unified` 也就是唯一的 `noding` 实现了，确实实现了统一，欢迎来到 Go 1.21 ！（实际上需要处理的东西其实没有改变，只是整合在了 `Unified` 内）
+在 Go 1.21 正式启用了 Unified IR，因此 `unified` 也就是唯一的 `noding` 实现了，确实实现了统一，欢迎来到 Go 1.21 ！（实际上需要处理的东西其实没有改变，只是整合在了 `Unified` 内，因此原来的包还依然存在）
 
 ```text
 // 新处理流程 Go 1.21
@@ -284,124 +274,156 @@ MACHINE_CODE := CodeGen(SSA)
 下面是各种 `noder` 在不同版本的存在状态：
 
 - Go 1.17 之前：noder
-- Go 1.17：noder, noder2
+- Go 1.17: noder, noder2
 - Go 1.18: noder, noder2, unified
 - Go 1.19: noder2, unified
 - Go 1.20: noder2, unified
 - Go 1.21: unified
 
-此处发生在 [noder.LoadPackage(flag.Args())](https://github.com/golang/go/blob/d8117459c513e048eb72f11988d5416110dff359/src/cmd/compile/internal/noder/noder.go#L27)，每个文件的词法和语法分析是并行处理的，[]*noder 的顺序也就是所给出的文件列表的顺序，noder 对应单一的文件，是这个文件中代码的 AST，可见在经过词法和语法分析时，仍是对单个文件进行的处理，还没有决定 init 的顺序，更没有进行 import 引入其他 Package。
+### 4. Middle end
 
-接下来 []*noder 被传入 check2() 用于类型检查。
+- [`internal/deadcode`](https://github.com/golang/go/blob/d8117459c513e048eb72f11988d5416110dff359/src/cmd/compile/internal/deadcode) (dead code elimination)
+- [`internal/inline`](https://github.com/golang/go/blob/d8117459c513e048eb72f11988d5416110dff359/src/cmd/compile/internal/inline) (function call inlining)
+- [`internal/devirtualize`](https://github.com/golang/go/blob/d8117459c513e048eb72f11988d5416110dff359/src/cmd/compile/internal/devirtualize) (devirtualization of known interface method calls)
+- [`internal/escape`](https://github.com/golang/go/blob/d8117459c513e048eb72f11988d5416110dff359/src/cmd/compile/internal/escape) (escape analysis)
 
-```go
-// check2 type checks a Go package using types2, and then generates IR
-// using the results.
-func check2(noders []*noder) {
-    m, pkg, info := checkFiles(noders)
-    g := irgen{
-        target: typecheck.Target,
-        self:   pkg,
-        info:   info,
-        posMap: m,
-        objs:   make(map[types2.Object]*ir.Name),
-        typs:   make(map[types2.Type]*types.Type),
-    }
-    g.generate(noders)
-}
-```
+### 5. Walk，SSA Gen 以及机器码生成
 
-注意 checkFiles() 返回了自身这个 Package 的信息 pkg，其中包含了所有 import 的 Package 的信息。后续 g.generate() 是在类型检查结束后生成 IR 树，g.generate() 中仍然依次处理 noder，在遇到 init 函数后会加入全局变量 typecheck.Target.Inits 列表，因此列表中 init 加入的顺序是先按照文件名顺序，再按照文件中的位置顺序。
+- Walk 遍历 IR，拆分复杂的语句以及将语法糖转换成基础的语句
+- SSA Gen 将 IR 转化为 Static Single Assignment (SSA) 形式，此时还与具体的机器无关
+- 机器码生成会根据架构以及更多机器相关的信息，对 SSA 进行优化；同时进行栈帧分配，寄存器分配，指针存活分析等等，最终经过汇编器 [`cmd/internal/obj`](https://github.com/golang/go/tree/d8117459c513e048eb72f11988d5416110dff359/src/cmd/internal/obj) 生成机器码。
 
-IR 树生成过程中遇到函数是这样处理的：
+## 流程中 init 相关的处理
+
+前面我们了解了 Go 编译器的流程，以及其发展变化的历史。接下来我们来看看其中 init 相关的具体处理。
 
 ```go
-case pkgbits.ObjFunc:
-    if sym.Name == "init" {
-        sym = Renameinit()
-    }
-...
-```
-
-可见 init 函数是多么特殊，它会被重命名，这样就不会与其他 init 函数冲突了。Renameinit() 的实现如下：
-
-```go
-var renameinitgen int
-
-func Renameinit() *types.Sym {
-    s := typecheck.LookupNum("init.", renameinitgen)
-    renameinitgen++
-    return s
-}
-```
-
-可见只是给了个编号，重命名成了一系列 init.0 init.1 init.2 等等的函数。
-
-```go
-// A Package describes a Go package.
-type Package struct {
-    path     string
-    name     string
-    scope    *Scope
-    imports  []*Package
-    complete bool
-    fake     bool // scope lookup errors are silently dropped if package is fake (internal use only)
-    cgo      bool // uses of this package will be rewritten into uses of declarations from _cgo_gotypes.go
-}
-```
-
-也就是说终于在 checkFiles() 时，加载了其他的 Package。接下来看看被引用的 Package 是如何被加载的，源码见 `go/src/cmd/compile/internal/noder/irgen.go`。
-
-```go
-importer := gcimports{
-    ctxt:     ctxt,
-    packages: make(map[string]*types2.Package),
-}
-conf := types2.Config{
+// https://github.com/golang/go/blob/d8117459c513e048eb72f11988d5416110dff359/src/cmd/compile/internal/gc/main.go#L59
+// Main parses flags and Go source files specified in the command-line
+// arguments, type-checks the parsed Go package, compiles functions to machine
+// code, and finally writes the compiled package definition to disk.
+func Main(archInit func(*ssagen.ArchInfo)) {
     ...
-    Importer:               &importer,
+    // Parse and typecheck input.
+    noder.LoadPackage(flag.Args())
+    ...
+    // Create "init" function for package-scope variable initialization
+    // statements, if any.
+    //
+    // Note: This needs to happen early, before any optimizations. The
+    // Go spec defines a precise order than initialization should be
+    // carried out in, and even mundane optimizations like dead code
+    // removal can skew the results (e.g., #43444).
+    pkginit.MakeInit()
+    ...
+    // Build init task, if needed.
+    if initTask := pkginit.Task(); initTask != nil {
+        typecheck.Export(initTask)
+    }
+    ...
+```
+
+`gc.Main()` 流程中主要有以上三部分对 init 进行了处理，接下来我们分别看看这三部分。
+
+### noder.LoadPackage()
+
+```go
+// https://github.com/golang/go/blob/d8117459c513e048eb72f11988d5416110dff359/src/cmd/compile/internal/noder/noder.go#L27
+func LoadPackage(filenames []string) {
+    ...
+    noders := make([]*noder, len(filenames))
+    ...
+    go func() {
+        for i, filename := range filenames {
+            ...
+            go func() {
+                ...
+                f, err := os.Open(filename)
+                ...
+                p.file, _ = syntax.Parse(fbase, f, p.error, p.pragma, syntax.CheckBranches) // errors are tracked via p.error
+            }()
+        }
+    }()
+    ...
+    unified(m, noders)
+}
+```
+
+可以看到 `LoadPackage()` 会并行的对每个文件进行读取以及词法语法分析，构建 AST。并将得到的 AST 列表传递给 `unified()` 进行统一处理。
+
+```go
+// https://github.com/golang/go/blob/d8117459c513e048eb72f11988d5416110dff359/src/cmd/compile/internal/noder/unified.go#L71
+func unified(m posMap, noders []*noder) {
+    ...
+    data := writePkgStub(m, noders)
+    ...
+    target := typecheck.Target
+    r := localPkgReader.newReader(pkgbits.RelocMeta, pkgbits.PrivateRootIdx, pkgbits.SyncPrivate)
+    r.pkgInit(types.LocalPkg, target)
+
+    // 后面均为 `internal/typecheck` 的处理，与 init 无关
+    // Type-check any top-level assignments. We ignore non-assignments
+    // here because other declarations are typechecked as they're
+    // constructed.
+    for i, ndecls := 0, len(target.Decls); i < ndecls; i++ {
+        switch n := target.Decls[i]; n.Op() {
+        case ir.OAS, ir.OAS2:
+            target.Decls[i] = typecheck.Stmt(n)
+        }
+    }
+
+    readBodies(target, false)
+
+    // Check that nothing snuck past typechecking.
+    for _, n := range target.Decls {
+        if n.Typecheck() == 0 {
+            base.FatalfAt(n.Pos(), "missed typecheck: %v", n)
+        }
+
+        // For functions, check that at least their first statement (if
+        // any) was typechecked too.
+        if fn, ok := n.(*ir.Func); ok && len(fn.Body) != 0 {
+            if stmt := fn.Body[0]; stmt.Typecheck() == 0 {
+                base.FatalfAt(stmt.Pos(), "missed typecheck: %v", stmt)
+            }
+        }
+    }
     ...
 }
-...
-pkg, err := conf.Check(base.Ctxt.Pkgpath, files, info)
 ```
 
-其中 gcimports 提供了一个 Import 方法，用于加载其他 Package，将会在 conf.Check() 中被调用。这个方法实际上是将编译好的 Package 对象文件重新加载为 types2.Package 结构体，也就是编译成对象文件的逆操作，显然这要求被依赖的 Package 提前编译好。
+其中 `writePkgStub()` 完成了类型检查。接下来的调用链有点长，在这里就不放源代码了，大致流程如下：
+
+writePkgStub() -> [noder.checkFiles](https://github.com/golang/go/blob/d8117459c513e048eb72f11988d5416110dff359/src/cmd/compile/internal/noder/irgen.go#L70) -> [conf.Check()](https://github.com/golang/go/blob/d8117459c513e048eb72f11988d5416110dff359/src/cmd/compile/internal/types2/api.go#L437) -> [Checker.Files()](https://github.com/golang/go/blob/d8117459c513e048eb72f11988d5416110dff359/src/cmd/compile/internal/types2/check.go#L331) -> [check.checkFiles()](https://github.com/golang/go/blob/d8117459c513e048eb72f11988d5416110dff359/src/cmd/compile/internal/types2/check.go#L335)
 
 ```go
-func (conf *Config) Check(path string, files []*syntax.File, info *Info) (*Package, error) {
-    pkg := NewPackage(path, "")
-    return pkg, NewChecker(conf, pkg, info).Files(files)
+// https://github.com/golang/go/blob/d8117459c513e048eb72f11988d5416110dff359/src/cmd/compile/internal/types2/check.go#L335
+func (check *Checker) checkFiles(files []*syntax.File) (err error) {
+    ...
+    print("== initFiles ==")
+    check.initFiles(files)
+
+    print("== collectObjects ==")
+    check.collectObjects()
+
+    print("== packageObjects ==")
+    check.packageObjects()
+
+    print("== processDelayed ==")
+    check.processDelayed(0) // incl. all functions
+
+    print("== cleanup ==")
+    check.cleanup()
+
+    print("== initOrder ==")
+    check.initOrder()
+    ...
 }
 ```
 
-conf.Check() 简单新建了一个 Package 结构用于表示自身，然后新建了一个 Checker，并调用了 Checker 的 Files() 方法，可以断定 import 的处理是在 Checker 的 Files() 方法中进行的，我们继续深入。
+`initFiles()` 用于检查文件开头的 package 语句所声明的名称是否符合要求，例如要跟当前 package 名一致，否则忽略这个文件（都经过词法语法分析了，白分析了，当然编译前就能检查出这些问题，一般不会进行到这里才发现）。
 
-```go
-...
-print("== initFiles ==")
-check.initFiles(files)
-
-print("== collectObjects ==")
-check.collectObjects()
-
-print("== packageObjects ==")
-check.packageObjects()
-
-print("== processDelayed ==")
-check.processDelayed(0) // incl. all functions
-
-print("== cleanup ==")
-check.cleanup()
-
-print("== initOrder ==")
-check.initOrder()
-...
-```
-
-initFiles() 用于检查文件开头的 package 语句所声明的名称是否符合要求，例如要跟当前 package 名一致，否则忽略这个文件（都经过词法语法分析了，白分析了，当然编译前就能检查出这些问题，一般不会进行到这里才发现）。
-
-collectObjects() 在此处对 import 的 Package 进行了加载，并将其置于相应的 Scope 中。可以看到这里仍然是按照文件顺序在进行处理，通过 `check.impMap` 来记录已经 import 的 Package，避免重复加载 Package；同时用 `var pkgImports = make(map[*Package]bool)` 来记录本 Package 所引用的所有 Package。
+`collectObjects()` 在此处对 import 的 Package 进行了加载，并将其置于相应的 Scope 中。可以看到这里仍然是按照文件顺序在进行处理，通过 `check.impMap` 来缓存已经加载的 Package；同时用 `pkgImports map[*Package]bool` 来记录本 Package 已经引用的 Package，避免其重复加入 `pkg.imports` 数组。
 
 同时，还能从中看到一些特殊 import 的处理，例如 import . 和 import _ 以及别名。DotImport 会将 imported package 中的导出符号全部遍历导入到当前的 FileScope 中，而一般情况下是将 imported package 整个加入到当前的 FileScope 中，这样会有额外的层次结构。
 
@@ -410,14 +432,15 @@ collectObjects() 在此处对 import 的 Package 进行了加载，并将其置�
 Scope 结构组织好后，还需要检查 FileScope 跟 PackageScope 之间的冲突问题，这主要是 DotImport 导致的。
 
 ```go
- // verify that objects in package and file scopes have different names
+// https://github.com/golang/go/blob/d8117459c513e048eb72f11988d5416110dff359/src/cmd/compile/internal/types2/resolver.go#L472
+// verify that objects in package and file scopes have different names
 for _, scope := range fileScopes {
     for name, obj := range scope.elems {
         if alt := pkg.scope.Lookup(name); alt != nil {
             ...
 ```
 
-initOrder() 是对一些有依赖关系的全局声明进行排序，并未涉及 init() 的处理，例如：
+`initOrder()` 是对一些有依赖关系的全局声明进行排序，并未涉及 init 的处理，例如：
 
 ```go
 var (
@@ -432,24 +455,91 @@ var (
 )
 ```
 
-在 Go 中，能够被用于初始化表达式的对象被称为 Dependency 对象，有 Const, Var, Func 这三类。先构建对象依赖关系的有向图（Directed Graph），再以每个节点的依赖数目为权重构建最小堆（MinHeap）并以此堆作为最小优先级队列（PriorityQueue），因此队列头部的对象总是依赖其它对象最少的，所以该队列的遍历顺序就是初始化的顺序，是很常规的处理思路。要注意常量的初始化比较简单，在类型检查时就已经确定，在这里仍然加入是为了检测循环依赖。
+在 Go 中，能够被用于初始化表达式的对象被称为 Dependency 对象，有 Const, Var, Func 这三类。先构建对象依赖关系的有向图（Directed Graph），再以每个节点的依赖数目为权重构建最小堆（MinHeap）并以此堆作为最小优先级队列（PriorityQueue），因此队列头部的对象总是依赖其它对象最少的，所以该队列的遍历顺序就是初始化的顺序，是很常规的处理思路。要注意常量的初始化比较简单，在构建时就已经确定，在这里仍然加入是为了检测循环依赖。
 
-于是乎，类型检查得到的 IR 树便是包含了完整的 import 信息的，接下来便会进行 init() 相关的处理。要注意的是 Package 里面特地用 []*Package 的形式保存了所有 import 的 Package。
+```go
+https://github.com/golang/go/blob/d8117459c513e048eb72f11988d5416110dff359/src/cmd/compile/internal/noder/unified.go#L209
+func writePkgStub(m posMap, noders []*noder) string {
+    // 类型检查
+    pkg, info := checkFiles(m, noders)
+
+    pw := newPkgWriter(m, pkg, info)
+    pw.collectDecls(noders)
+    ...
+    var sb strings.Builder
+    pw.DumpTo(&sb)
+
+    // At this point, we're done with types2. Make sure the package is
+    // garbage collected.
+    freePackage(pkg)
+
+    return sb.String()
+}
+```
+
+最后再回到开始，可见 `writePkgStub` 包含了 `internal/types2` 的类型检查；类型检查会涉及到外部包的导出类型，也就是说会处理 import 语句；同时，类型检查的过程中也生成了一份 `types2.Package` 以及 `types2.info`，其中 `types2.package` 包含 Scope 层次信息以及每个 Scope 中的 Object 信息；`types2.info` 包含了类型检查中生成的类型信息；最后通过 `pkgWriter` 将这两个信息整合序列化为字符串，也就是最终得到的 `data`。
+
+实际上，这个 `data` 就是 Unified IR 的导出；接下来使用 `pkgReader` 将 `data` 重新构建为 IR，存储在 `typecheck.Target`。
+
+> 明明步骤紧接在一起，为什么要把 Unified IR 先 `export` 再 `import` 呢？
+> 这样做主要是为了将 Unified IR 与后续部分完全解耦，可以看到只要有 `export data` 就能够完成后续的编译工作；同时通过实现不同的 pkgReader，便可以从 `export data` 中提取出不同的信息。例如编译器需要从中读取完整的 IR； `x/tools` 下的工具需要对代码进行静态分析，那么就可以实现一个 pkgReader 来提取自己需要的信息，而不必再自己实现一遍词法语法分析以及类型检查。
+
+在 `pkgReader` 构建 IR 的过程中，遇到函数类型的 Object 时，做了如下处理：
+
+```go
+// https://github.com/golang/go/blob/d8117459c513e048eb72f11988d5416110dff359/src/cmd/compile/internal/noder/reader.go#L750
+case pkgbits.ObjFunc:
+    if sym.Name == "init" {
+        sym = Renameinit()
+    }
+...
+```
+
+可见 init 函数是多么特殊，它会被重命名，这样就不会与其他 init 函数冲突了。Renameinit() 的实现如下：
+
+```go
+// https://github.com/golang/go/blob/d8117459c513e048eb72f11988d5416110dff359/src/cmd/compile/internal/noder/noder.go#L419
+var renameinitgen int
+
+func Renameinit() *types.Sym {
+    s := typecheck.LookupNum("init.", renameinitgen)
+    renameinitgen++
+    return s
+}
+```
+
+可见只是给了个编号，重命名成了一系列 init.0 init.1 init.2 等等的函数。
+
+至此 `LoadPackage()` 的工作就完成了。
+
+### pkginit.MakeInit()
 
 接下来终于来到了 pkginit 包的内容。
 
 ```go
-// Parse and typecheck input.
-noder.LoadPackage(flag.Args())
-...
-// Create "init" function for package-scope variable initialization
-// statements, if any.
-//
-// Note: This needs to happen early, before any optimizations. The
-// Go spec defines a precise order than initialization should be
-// carried out in, and even mundane optimizations like dead code
-// removal can skew the results (e.g., #43444).
-pkginit.MakeInit()
+// https://github.com/golang/go/blob/d8117459c513e048eb72f11988d5416110dff359/src/cmd/compile/internal/gc/main.go#L59
+// Main parses flags and Go source files specified in the command-line
+// arguments, type-checks the parsed Go package, compiles functions to machine
+// code, and finally writes the compiled package definition to disk.
+func Main(archInit func(*ssagen.ArchInfo)) {
+    ...
+    // Parse and typecheck input.
+    noder.LoadPackage(flag.Args())
+    ...
+    // Create "init" function for package-scope variable initialization
+    // statements, if any.
+    //
+    // Note: This needs to happen early, before any optimizations. The
+    // Go spec defines a precise order than initialization should be
+    // carried out in, and even mundane optimizations like dead code
+    // removal can skew the results (e.g., #43444).
+    pkginit.MakeInit()
+    ...
+    // Build init task, if needed.
+    if initTask := pkginit.Task(); initTask != nil {
+        typecheck.Export(initTask)
+    }
+    ...
 ```
 
 从注释也可以知道，在词法分析、语法分析以及类型检查和构造 IR 树的过程中，均未涉及代码优化。以下是 MakeInit() 的内容，关键部分使用中文进行了更详细的注释，可以对照相关方法的源码进行阅读。
@@ -517,9 +607,12 @@ func MakeInit() {
 
 3. 最后，初始化函数如果在 Task() 中创建，则无法参与到类型检查结束到 Task() 开始这之间的优化过程，主要包括无效代码清理和内联优化。因此将其提前到类型检查结束后创建，这样就可以参与到优化过程中了。
 
+### pkginit.Task()
+
 最后，终于来到了 init 处理的终点， pkginit.Task()。
 
 ```go
+// https://github.com/golang/go/blob/d8117459c513e048eb72f11988d5416110dff359/src/cmd/compile/internal/pkginit/init.go#L93
 // Task makes and returns an initialization record for the package.
 // See runtime/proc.go:initTask for its layout.
 // The 3 tasks for initialization are:
@@ -628,9 +721,10 @@ if initTask := pkginit.Task(); initTask != nil {
 
 链接时，在拥有了所有的 .inittask 包含的具体函数相关信息后，链接器会将其按照依赖关系进行排序，生成一个具体的 mainInittasks 列表供 runtime 使用。此处不再展开这一部分，有兴趣的同学可以自行阅读链接器 inittask 部分的源码：`src/cmd/link/internal/ld/inittask.go`，最终 SymbolName 为 `go:main.inittasks`。
 
-最终链接生成可执行文件时，inittasks 会被设计为加载到 `src/runtime/proc.go` 的 runtime_inittasks 数组中，然后在`runtime.main` 函数中被使用：
+最终链接生成可执行文件时，inittasks 的地址会给到 `src/runtime/proc.go` 的 runtime_inittasks 数组变量，然后在`runtime.main` 函数中被使用：
 
 ```go
+// https://github.com/golang/go/blob/d8117459c513e048eb72f11988d5416110dff359/src/runtime/proc.go#L144
 func main() {
     ...
     doInit(runtime_inittasks) // Must be before defer.
@@ -638,29 +732,31 @@ func main() {
 }
 ```
 
-最后回看一开始发现的三个现象：
+最后回看一开始发现的现象：
 
-[现象1]：`a/b.go` 和 `a/c.go` 的 init() 函数的执行顺序是按照文件名的字母顺序来的，将 `a/b.go` 改名后，其文件名顺序排在了 `a/c.go` 之后，最终 init() 执行也排在了之后。
-
-[现象2]：就算 var 先进行初始化，使用了定义在 `a/d.go` 中的 A()，但是 init() 函数的执行顺序仍然是按照文件名的字母顺序来的。
-
-[现象3]：package 内文件中包含的 import 的处理顺序也是按照文件名的字母顺序来的，跟这里的 init() 函数的执行顺序是类似的，也就是说： `相同 package 内，a.go 内的 import 会先于 b.go 内的 import 执行`。
+[现象]：`a/b.go` 和 `a/c.go` 的 init() 函数的执行顺序是按照文件名的字母顺序来的，将 `a/b.go` 改名后，其文件名顺序排在了 `a/c.go` 之后，最终 init() 执行也排在了之后。
 
 根源在于编译器在读取源文件时是按照文件系统文件名顺序读入，在处理时也是依文件次序处理的，也就是编译器遇到 init 和 import 的顺序都是由文件名顺序决定的。
 
-1. 虽然有 initOrder() 的存在，但是它不会影响用户定义的 init() 的顺序，因此 [现象1] 和 [现象2] 是肯定的。
+1. 虽然有 `initOrder()` 的存在，但是它不会影响用户定义的 `init()` 的顺序
 
-2. initOrder() 会处理 import 的依赖关系，因此 [现象3] 只会在 a.go 和 b.go 所 import 的包之间不存在依赖关系时才成立。如果有：
+2. `initOrder()` 会处理 import 的依赖关系，因此最终各个 Package 的 init 顺序时根据依赖关系决定的。
+
+例如：
 
 ```go
 // a1.go
 import "b"
+```
 
+```go
 // a2.go
 import "c"
+```
 
+```go
 // b.go
 import "c"
 ```
 
-那么不管 a1.go 和 a2.go 的文件名顺序如何，a2.go 内的 import 语句都会先于 a2.go 内的 import 初始化，因为 b 依赖 c。
+那么不管 a1.go 和 a2.go 的文件名顺序如何，package c 都会先于 package b 初始化，因为 b 依赖 c。

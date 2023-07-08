@@ -87,7 +87,7 @@ Golang 编译器相关源码位于 [`go/src/cmd/compile/`](https://github.com/go
 
 Go 编译处理的单位是 Package，得到的结果是 Object 文件。在一次编译过程开始时会读取 Package 中所有文件内容进行词法和语法分析。我们很容易就能找到编译器的入口文件 `main.go`：
 
-```go
+```go {hl_lines=[14]}
 // https://github.com/golang/go/blob/d8117459c513e048eb72f11988d5416110dff359/src/cmd/compile/main.go#L45
 func main() {
     // disable timestamps for reproducible output

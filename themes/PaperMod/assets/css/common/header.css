@@ -95,3 +95,5 @@ body:not(.dark) #sun {
 .logo-switches {
     flex-wrap: inherit;
 }
+
+code.language-mermaid { display: flex !important; justify-content: center }

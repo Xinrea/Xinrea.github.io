@@ -2,6 +2,7 @@
 title: "从新硬盘检测到硬盘接口的发展"
 date: 2023-09-16
 draft: false
+tags: ["SCSI", "IDE", "ATA", "SATA", "AHCI", "NVMe"]
 ---
 
 在工作中经常需要为虚拟机新增磁盘设备，为了在不 reboot 的情况下使用这些新磁盘，需要对新磁盘进行检测。而检测的方法是如下命令（方法来自 [Stack Exchange](https://unix.stackexchange.com/questions/404405/how-to-detect-new-hard-disk-attached-without-rebooting)）：

@@ -4,7 +4,7 @@ date: 2023-06-24
 draft: true
 math: true
 mermaid: true
-tags: ["Distribute System", "Design"]
+tags: ["Distribute System", "Design", "Paxos", "Raft", "CAP"]
 showtoc: true
 ---
 
@@ -143,6 +143,8 @@ graph TD
 
 > 因此这里讨论的分布式共识没有 BTC 等区块链项目的共识机制严格，但仍需考虑各种异常情况的处理；在这一点也能窥见区块链的魅力，在完全混沌和不可信的环境中构建一份共识。
 
+- Paxos 算法
+
 提到分布式共识算法就得从 [Paxos 算法](https://zhuanlan.zhihu.com/p/341122718) 说起。Paxos 算法模拟了一个小岛上通过决议的流程，一个值的确定需要多数人发起提案（Prepare 阶段）后，得到多数人的同意（Accept 阶段）。其中每个人都要维护一个Proposal ID，已确保只处理自身视角里最新的 Proposal，Proposal ID 将会在 Prepare 和 Accept 阶段中更新。
 
 这样的 Basic Paxos 算法的问题在于，只要多数人就可发起提案，因此很可能前一个提案还未处理完便发起了新的提案，导致 Accept 阶段有些人得知了新的提案便不再处理旧提案，使得旧提案无法得到多数人的确认，此时若再次发起提案，那么刚刚的新提案也会遇到同样的问题，造成活锁；同时，这样的流程仅能确定一个值，无法满足实际需求。
@@ -152,3 +154,5 @@ graph TD
 同时，由于 Leader 只有一个且算法将多次进行，那么在一开始提前使用 Paxos 算法确定好 Leader 后，后续的 Prepare 阶段都可以省略掉了；当 Leader 宕机后使用 Paxos 算法再选一个出来就可以了。这样还解决了算法 Prepare 阶段网络 IO 的耗时，提高了算法的效率。
 
 > Leader 的选举还是使用的 Basic Paxos 算法，但是由于目的明确且易于控制，不会连续产生多个 Proposal 导致活锁。
+
+- Raft 算法

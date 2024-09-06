@@ -46,4 +46,12 @@ summary: "projects"
 <span class="tag">HTML</span>
 <span class="tag">Electron</span>
 
-Bilibili 弹幕机，除了常见的弹幕显示功能外，还支持礼物、醒目留言单独窗口显示，同时支持礼物记录本地保存管理。
+BiliBili 弹幕机，除了常见的弹幕显示功能外，还支持礼物、醒目留言单独窗口显示，同时支持礼物记录本地保存管理。
+
+## [BiliShadowPlay](https://github.com/Xinrea/bili-shadowreplay)
+
+<span class="tag">Tauri</span>
+<span class="tag">Svelte</span>
+<span class="tag">Rust</span>
+
+BiliBili 直播缓存及实时保存工具，功能类似 Nvidia ShadowPlay。

@@ -1,6 +1,6 @@
-baseURL: 'https://xinrea.cn'
-languageCode: 'zh-CN'
-title: '杏仁儿的博客'
+baseURL: "https://xinrea.cn"
+languageCode: "zh-CN"
+title: "杏仁儿的博客"
 theme: "PaperMod"
 enableGitInfo: true
 hasCJKLanguage: true
@@ -8,16 +8,26 @@ buildDrafts: true
 googleAnalytics: G-YDJZ0WLTD6
 markup:
   highlight:
-      # anchorLineNos: true
-      codeFences: true
-      guessSyntax: false
-      lineNos: true
-      lineNumbersInTable: false
-      # noClasses: false
-      style: monokai
+    # anchorLineNos: true
+    codeFences: true
+    guessSyntax: false
+    lineNos: true
+    lineNumbersInTable: false
+    # noClasses: false
+    style: monokai
   goldmark:
-    renderer:
-      unsafe: true
+    extensions:
+      passthrough:
+        delimiters:
+          block:
+            - - \[
+              - \]
+            - - $$
+              - $$
+          inline:
+            - - \(
+              - \)
+        enable: true
 outputs:
   home:
     - HTML
@@ -38,27 +48,28 @@ menu:
       url: projects
       weight: 4
 params:
-    env: production
-    assets:
-        disableHLJS: true
-    homeInfoParams:
-        Title: Xinrea
-        Content: TL;DR
+  math: true
+  env: production
+  assets:
+    disableHLJS: true
+  homeInfoParams:
+    Title: Xinrea
+    Content: TL;DR
 
-    socialIcons: # optional
-        - name: "bilibili"
-          url: "https://space.bilibili.com/475210"
-        - name: "GitHub"
-          url: "https://github.com/Xinrea"
-        - name: "email"
-          url: "mailto:xinreas@outlook.com"
+  socialIcons: # optional
+    - name: "bilibili"
+      url: "https://space.bilibili.com/475210"
+    - name: "GitHub"
+      url: "https://github.com/Xinrea"
+    - name: "email"
+      url: "mailto:xinreas@outlook.com"
 
-    ShowReadingTime: true
-    ShowBreadCrumbs: true
-    disqusShortname: xinrea
-    ShowWordCount: true
-    defaultTheme: auto
-    editPost:
-      URL: "https://github.com/Xinrea/Xinrea.github.io/tree/main/content"
-      Text: "Suggest Changes" # edit text
-      appendFilePath: true # to append file path to Edit link
+  ShowReadingTime: true
+  ShowBreadCrumbs: true
+  disqusShortname: xinrea
+  ShowWordCount: true
+  defaultTheme: auto
+  editPost:
+    URL: "https://github.com/Xinrea/Xinrea.github.io/tree/main/content"
+    Text: "Suggest Changes" # edit text
+    appendFilePath: true # to append file path to Edit link

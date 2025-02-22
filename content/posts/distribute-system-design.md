@@ -74,7 +74,7 @@ $$C \subseteq E$$
 
 我们来看看强一致性节点集合 C 的性质：
 
-*从 1.1 中得知，对于强一致性节点集合 C，C 中元素越多，集群处理强一致性请求的可用性越低*
+_从 1.1 中得知，对于强一致性节点集合 C，C 中元素越多，集群处理强一致性请求的可用性越低_
 
 <center><iframe src="https://www.desmos.com/calculator/7jawmsfpsx?embed" width="500" height="500" style="border: 1px solid #ccc" frameborder=0></iframe></center>
 
@@ -118,7 +118,7 @@ $$C \subseteq E$$
 ```mermaid
 graph TD
     subgraph Sentinel
-       A1(Sentinel Leader) <--> A2(Sentinel 1) 
+       A1(Sentinel Leader) <--> A2(Sentinel 1)
        A3(Sentinel 2) <--> A2
        A3(Sentinel 2) <--> A1
     end
@@ -145,7 +145,7 @@ graph TD
 
 - Paxos 算法
 
-提到分布式共识算法就得从 [Paxos 算法](https://zhuanlan.zhihu.com/p/341122718) 说起。Paxos 算法模拟了一个小岛上通过决议的流程，一个值的确定需要多数人发起提案（Prepare 阶段）后，得到多数人的同意（Accept 阶段）。其中每个人都要维护一个Proposal ID，已确保只处理自身视角里最新的 Proposal，Proposal ID 将会在 Prepare 和 Accept 阶段中更新。
+提到分布式共识算法就得从 [Paxos 算法](https://zhuanlan.zhihu.com/p/341122718) 说起。Paxos 算法模拟了一个小岛上通过决议的流程，一个值的确定需要多数人发起提案（Prepare 阶段）后，得到多数人的同意（Accept 阶段）。其中每个人都要维护一个 Proposal ID，已确保只处理自身视角里最新的 Proposal，Proposal ID 将会在 Prepare 和 Accept 阶段中更新。
 
 这样的 Basic Paxos 算法的问题在于，只要多数人就可发起提案，因此很可能前一个提案还未处理完便发起了新的提案，导致 Accept 阶段有些人得知了新的提案便不再处理旧提案，使得旧提案无法得到多数人的确认，此时若再次发起提案，那么刚刚的新提案也会遇到同样的问题，造成活锁；同时，这样的流程仅能确定一个值，无法满足实际需求。
 

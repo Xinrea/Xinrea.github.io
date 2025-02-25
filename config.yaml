@@ -1,7 +1,7 @@
 baseURL: "https://xinrea.cn"
 languageCode: "zh-CN"
 title: "杏仁儿的博客"
-theme: PaperMod
+theme: ["github.com/adityatelange/hugo-PaperMod"]
 enableGitInfo: true
 hasCJKLanguage: true
 buildDrafts: true

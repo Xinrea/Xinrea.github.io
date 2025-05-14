@@ -49,6 +49,7 @@ menu:
       url: projects
       weight: 4
 params:
+  comments: true
   math: true
   env: production
   assets:

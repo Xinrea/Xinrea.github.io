@@ -58,6 +58,10 @@ params:
     Title: Xinrea
     Content: TL;DR
 
+services:
+  googleAnalytics:
+    id: G-YDJZ0WLTD6
+
   socialIcons: # optional
     - name: "bilibili"
       url: "https://space.bilibili.com/475210"

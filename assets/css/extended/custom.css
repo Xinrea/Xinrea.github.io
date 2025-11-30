@@ -15,17 +15,7 @@ body {
   font-family: "Charter", "Bitstream Charter", "Sitka Text", "Cambria", Georgia,
     serif;
   font-size: 17px;
-
-  /* 
-       解决方案 B：如果您想保留 Inter (现代无衬线风格)，
-       需要将字号减小到 15px 或 15.5px 才能达到类似的视觉大小。
-       (如果选择此方案，请取消下面两行的注释，并注释掉上面的 font-family 和 font-size)
-    */
-  /* font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif; */
-  /* font-size: 15.5px; */
-
-  font-size: 15px;
-  line-height: 1.75; /* 增加行高，让文字呼吸感更强，更像参考网站 */
+  line-height: 1.7; /* 增加行高，让文字呼吸感更强，更像参考网站 */
 
   /* 颜色调整：参考网站使用了柔和的深灰色 (#3d3d3a)，比纯黑更护眼且显得高级 */
   color: #3d3d3a;

@@ -1,0 +1,89 @@
+<canvas
+  id="bg-canvas"
+  style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: -1;
+  "
+></canvas>
+<script>
+  (function () {
+    const canvas = document.getElementById("bg-canvas");
+    const ctx = canvas.getContext("2d");
+    let width, height;
+    let particles = [];
+
+    function resize() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    }
+
+    window.addEventListener("resize", resize);
+    resize();
+
+    class Particle {
+      constructor() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        this.vx = (Math.random() - 0.5) * 0.3; // Slow movement
+        this.vy = (Math.random() - 0.5) * 0.3;
+        this.size = Math.random() * 2 + 1; // Small size
+        this.alpha = Math.random() * 0.2 + 0.05; // Very transparent
+      }
+
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+
+        // Wrap around screen
+        if (this.x < 0) this.x = width;
+        if (this.x > width) this.x = 0;
+        if (this.y < 0) this.y = height;
+        if (this.y > height) this.y = 0;
+      }
+
+      draw() {
+        // Check for dark mode (PaperMod adds 'dark' class to body or html)
+        const isDark = document.body.classList.contains("dark");
+        ctx.fillStyle = isDark
+          ? `rgba(255, 255, 255, ${this.alpha})`
+          : `rgba(0, 0, 0, ${this.alpha})`;
+
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function init() {
+      // Adjust particle count based on screen size
+      const particleCount = Math.floor((width * height) / 15000);
+      for (let i = 0; i < particleCount; i++) {
+        particles.push(new Particle());
+      }
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, width, height);
+      particles.forEach((p) => {
+        p.update();
+        p.draw();
+      });
+      requestAnimationFrame(animate);
+    }
+
+    // Initialize after a short delay to ensure DOM is ready and theme mode is applied
+    setTimeout(() => {
+      init();
+      animate();
+    }, 100);
+
+    // Listen for theme toggle if PaperMod has a specific event, or just check in draw loop (which is what I did above)
+    // But if theme changes without reload, we might want to update colors immediately?
+    // The draw loop checks `isDark` every frame, so it should react instantly to class changes on body.
+  })();
+</script>

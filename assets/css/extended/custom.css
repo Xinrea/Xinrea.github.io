@@ -1,0 +1,61 @@
+:root {
+  /* 核心原因 1：参考网站的内容宽度更窄 (640px)，而 PaperMod 默认是 720px。
+       更窄的宽度会让阅读体验更紧凑、精致。 */
+  --main-width: 640px;
+}
+
+/* Override default font settings */
+body {
+  /* 核心原因 2：字体类型不同。
+       参考网站使用的是“衬线字体”(Serif)，其字母高度(x-height)通常比“无衬线字体”(Inter/San-serif)要小。
+       同样的 17px，Inter 会看起来大很多。
+       
+       解决方案 A (推荐)：如果您想要参考网站的那种“书卷气”，请使用下面的衬线字体栈：
+    */
+  font-family: "Charter", "Bitstream Charter", "Sitka Text", "Cambria", Georgia,
+    serif;
+  font-size: 17px;
+
+  /* 
+       解决方案 B：如果您想保留 Inter (现代无衬线风格)，
+       需要将字号减小到 15px 或 15.5px 才能达到类似的视觉大小。
+       (如果选择此方案，请取消下面两行的注释，并注释掉上面的 font-family 和 font-size)
+    */
+  /* font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif; */
+  /* font-size: 15.5px; */
+
+  font-size: 15px;
+  line-height: 1.75; /* 增加行高，让文字呼吸感更强，更像参考网站 */
+
+  /* 颜色调整：参考网站使用了柔和的深灰色 (#3d3d3a)，比纯黑更护眼且显得高级 */
+  color: #3d3d3a;
+}
+
+/* Optional: Adjust headings if they feel too big relative to body text */
+h1 {
+  font-size: 2rem;
+}
+h2 {
+  font-size: 1.75rem;
+}
+h3 {
+  font-size: 1.5rem;
+}
+h4 {
+  font-size: 1.25rem;
+}
+
+/* Adjust code block font size if needed */
+code {
+  font-size: 0.85em; /* 稍微再调小一点代码字体，使其不抢眼 */
+}
+
+/* Dark mode adjustments */
+.dark body {
+  color: #c4c4c5; /* 夜间模式文字颜色 */
+}
+
+/* Table of Contents 暗色主题支持 */
+.dark .toc details summary {
+  color: #c4c4c5; /* 与正文颜色保持一致 */
+}

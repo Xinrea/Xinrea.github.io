@@ -31,7 +31,7 @@ summary: "projects"
 
 虚拟主播轴伊的可互动多功能 Live2D 桌面宠物。
 
-> 想着熟悉一下 Live2D SDK 开发，于是在官方样例的基础上开发了这个桌面宠物。最开始使用自己绘画&建模的一个[轴伊Joi_Channel](https://space.bilibili.com/61639371)的团子形象 Live2D 模型，后来 [轴伊Joi_Channel](https://space.bilibili.com/61639371) 提供了自身 Q 版差分立绘，逐渐改进完成了桌面宠物。
+> 想着熟悉一下 Live2D SDK 开发，于是在官方样例的基础上开发了这个桌面宠物。最开始使用自己绘画&建模的一个[轴伊 Joi_Channel](https://space.bilibili.com/61639371)的团子形象 Live2D 模型，后来 [轴伊 Joi_Channel](https://space.bilibili.com/61639371) 提供了自身 Q 版差分立绘，逐渐改进完成了桌面宠物。
 
 ## [简易提问箱 JAsk](https://ask.vjoi.cn)
 
